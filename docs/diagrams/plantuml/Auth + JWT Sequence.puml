@@ -1,0 +1,42 @@
+@startuml
+
+actor User
+participant MobileApp
+participant AuthService
+participant Database
+
+User -> MobileApp : Login Request
+MobileApp -> AuthService : POST /login
+AuthService -> Database : Verify credentials
+Database --> AuthService : Valid user
+
+AuthService -> AuthService : Generate JWT
+
+AuthService --> MobileApp : JWT Token
+
+MobileApp -> MobileApp : Store Token
+
+MobileApp -> AuthService : Authenticated request
+AuthService --> MobileApp : Protected data
+
+@enduml
+
+@startuml
+
+actor User
+participant MobileApp
+participant AuthService
+participant Database
+
+User -> MobileApp : Login
+MobileApp -> AuthService : POST /login
+AuthService -> Database : Verify user
+Database --> AuthService : Valid
+
+AuthService -> AuthService : Generate JWT
+AuthService --> MobileApp : Token
+
+MobileApp -> AuthService : Authenticated request
+AuthService --> MobileApp : Protected data
+
+@enduml

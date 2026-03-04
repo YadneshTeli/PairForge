@@ -1,0 +1,17 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Developer User", "Uses PairForge to meet developers, collaborate, or date")
+
+System(pairforge, "PairForge Platform", "Developer dating & collaboration platform")
+
+System_Ext(github, "GitHub", "Developer repositories & profile data")
+System_Ext(push, "Push Notification Services", "Firebase Cloud Messaging / Apple Push")
+System_Ext(oauth, "OAuth Providers", "Google, GitHub login")
+
+Rel(user, pairforge, "Uses mobile app")
+Rel(pairforge, github, "Fetch repository data")
+Rel(pairforge, push, "Send push notifications")
+Rel(pairforge, oauth, "Authenticate users")
+
+@enduml

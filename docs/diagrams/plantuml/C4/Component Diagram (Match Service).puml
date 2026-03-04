@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(match, "Match Service", "Node.js")
+
+Component(controller, "Match Controller", "Express Controller")
+Component(service, "Match Service Logic", "Business Logic")
+Component(repo, "Match Repository", "Database access")
+Component(cache, "Redis Cache", "Cached suggestions")
+Component(ai, "AI Match API Client", "Calls AI service")
+
+ContainerDb(db, "PostgreSQL")
+
+Rel(controller, service, "Calls")
+Rel(service, repo, "Reads/Writes")
+Rel(service, cache, "Check cached suggestions")
+Rel(service, ai, "Get compatibility score")
+Rel(repo, db, "Query matches")
+
+@enduml

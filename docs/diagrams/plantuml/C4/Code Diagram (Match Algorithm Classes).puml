@@ -1,0 +1,32 @@
+@startuml
+
+class MatchController {
+  +getSuggestions()
+  +swipeUser()
+}
+
+class MatchService {
+  +generateSuggestions()
+  +processSwipe()
+}
+
+class MatchRepository {
+  +getCandidates()
+  +saveSwipe()
+}
+
+class CompatibilityEngine {
+  +calculateScore()
+}
+
+class TechStackSimilarity
+class InterestSimilarity
+
+MatchController --> MatchService
+MatchService --> MatchRepository
+MatchService --> CompatibilityEngine
+
+CompatibilityEngine --> TechStackSimilarity
+CompatibilityEngine --> InterestSimilarity
+
+@enduml

@@ -1,0 +1,96 @@
+@startuml
+
+package "Client Layer" {
+  [Flutter Mobile App]
+}
+
+package "API Layer" {
+  [API Gateway]
+}
+
+package "Microservices" {
+
+  [Auth Service]
+  [User Service]
+  [Match Service]
+  [Chat Service]
+  [Project Service]
+  [Event Service]
+  [Notification Service]
+}
+
+package "AI Services" {
+  [Matchmaking AI]
+}
+
+package "Data Layer" {
+  [PostgreSQL]
+  [Redis]
+  [Object Storage]
+}
+
+[Flutter Mobile App] --> [API Gateway]
+
+[API Gateway] --> [Auth Service]
+[API Gateway] --> [User Service]
+[API Gateway] --> [Match Service]
+[API Gateway] --> [Chat Service]
+[API Gateway] --> [Project Service]
+[API Gateway] --> [Event Service]
+
+[Match Service] --> [Matchmaking AI]
+
+[Auth Service] --> [PostgreSQL]
+[User Service] --> [PostgreSQL]
+[Match Service] --> [PostgreSQL]
+[Chat Service] --> [Redis]
+
+@enduml
+
+@startuml
+
+package "Client Layer" {
+  [Flutter Mobile App]
+}
+
+package "API Gateway" {
+  [API Gateway]
+}
+
+package "Microservices" {
+  [Auth Service]
+  [User Service]
+  [Match Service]
+  [Chat Service]
+  [Project Service]
+  [Event Service]
+  [Notification Service]
+}
+
+package "AI Service" {
+  [Matchmaking Engine]
+}
+
+package "Data Layer" {
+  [PostgreSQL]
+  [Redis]
+  [Object Storage]
+}
+
+[Flutter Mobile App] --> [API Gateway]
+
+[API Gateway] --> [Auth Service]
+[API Gateway] --> [User Service]
+[API Gateway] --> [Match Service]
+[API Gateway] --> [Chat Service]
+[API Gateway] --> [Project Service]
+[API Gateway] --> [Event Service]
+
+[Match Service] --> [Matchmaking Engine]
+
+[Auth Service] --> [PostgreSQL]
+[User Service] --> [PostgreSQL]
+[Match Service] --> [PostgreSQL]
+[Chat Service] --> [Redis]
+
+@enduml

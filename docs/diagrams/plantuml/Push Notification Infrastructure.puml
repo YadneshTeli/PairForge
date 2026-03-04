@@ -1,0 +1,15 @@
+@startuml
+
+component "Backend Services"
+component "Notification Service"
+component "Message Queue"
+component "Push Provider (FCM/APNs)"
+
+node "User Device"
+
+"Backend Services" --> "Notification Service"
+"Notification Service" --> "Message Queue"
+"Message Queue" --> "Push Provider (FCM/APNs)"
+"Push Provider (FCM/APNs)" --> "User Device"
+
+@enduml

@@ -1,0 +1,10 @@
+@startuml
+
+entity User
+entity Event
+entity EventParticipant
+
+User ||--o{ EventParticipant
+Event ||--o{ EventParticipant
+
+@enduml

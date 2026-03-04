@@ -1,0 +1,46 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Developer User")
+
+System_Boundary(pairforge, "PairForge Platform") {
+
+Container(mobile, "Flutter Mobile App", "Flutter", "User interface")
+
+Container(api, "API Gateway", "Node.js", "Entry point for client APIs")
+
+Container(auth, "Auth Service", "Node.js", "Handles authentication & JWT")
+
+Container(match, "Match Service", "Node.js", "Swipe & match logic")
+
+Container(chat, "Chat Service", "Node.js + WebSocket", "Real-time messaging")
+
+Container(project, "Project Service", "Node.js", "Project collaboration hub")
+
+Container(events, "Event Service", "Node.js", "Hackathons and tech events")
+
+Container(ai, "AI Match Engine", "Python + FastAPI", "Compatibility scoring")
+
+ContainerDb(db, "PostgreSQL", "Database", "User data")
+
+ContainerDb(redis, "Redis", "Cache / PubSub", "Chat + match cache")
+
+}
+
+Rel(user, mobile, "Uses")
+
+Rel(mobile, api, "REST API")
+
+Rel(api, auth, "Auth requests")
+Rel(api, match, "Match requests")
+Rel(api, chat, "Chat requests")
+Rel(api, project, "Project requests")
+Rel(api, events, "Event requests")
+
+Rel(match, ai, "Get compatibility score")
+
+Rel(auth, db, "User data")
+Rel(match, db, "Match data")
+Rel(chat, redis, "Real-time messaging")
+
+@enduml

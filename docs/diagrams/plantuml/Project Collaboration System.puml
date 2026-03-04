@@ -1,0 +1,13 @@
+@startuml
+
+entity User
+entity Project
+entity ProjectMember
+entity Message
+
+User ||--o{ Project : creates
+User ||--o{ ProjectMember : joins
+Project ||--o{ ProjectMember : contains
+Project ||--o{ Message : discussion
+
+@enduml
