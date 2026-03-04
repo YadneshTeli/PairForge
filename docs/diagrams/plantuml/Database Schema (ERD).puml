@@ -1,0 +1,49 @@
+@startuml
+
+entity Users {
+  +id
+  email
+  password_hash
+  created_at
+}
+
+entity Profiles {
+  +id
+  user_id
+  name
+  bio
+  location
+}
+
+entity TechStacks {
+  +id
+  name
+}
+
+entity UserTech {
+  user_id
+  tech_id
+}
+
+entity Matches {
+  id
+  user1_id
+  user2_id
+  score
+}
+
+entity Messages {
+  id
+  match_id
+  sender_id
+  text
+}
+
+Users ||--|| Profiles
+Users ||--o{ UserTech
+TechStacks ||--o{ UserTech
+
+Users ||--o{ Matches
+Matches ||--o{ Messages
+
+@enduml

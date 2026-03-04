@@ -1,0 +1,29 @@
+@startuml
+
+node "Flutter App" {
+  component UserA
+  component UserB
+}
+
+node "Backend" {
+  component "Pair Session Service"
+  component "Signaling Server"
+}
+
+node "WebRTC Layer" {
+  component "STUN Server"
+  component "TURN Server"
+}
+
+UserA --> "Pair Session Service"
+UserB --> "Pair Session Service"
+
+"Pair Session Service" --> "Signaling Server"
+
+UserA --> "Signaling Server"
+UserB --> "Signaling Server"
+
+UserA --> "STUN Server"
+UserB --> "TURN Server"
+
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+
+entity Users
+entity Profiles
+entity TechStacks
+entity UserTech
+entity Matches
+entity Messages
+entity Projects
+entity Events
+
+Users ||--|| Profiles
+Users ||--o{ UserTech
+TechStacks ||--o{ UserTech
+
+Users ||--o{ Matches
+Matches ||--o{ Messages
+
+Users ||--o{ Projects
+Users ||--o{ Events
+
+@enduml

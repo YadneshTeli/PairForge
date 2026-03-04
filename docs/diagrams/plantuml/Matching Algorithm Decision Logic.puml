@@ -1,0 +1,55 @@
+@startuml
+
+start
+
+:Fetch Candidate Users;
+
+:Calculate Tech Stack Similarity;
+
+:Calculate Interest Similarity;
+
+:Calculate Experience Match;
+
+:Calculate Location Proximity;
+
+:Calculate Collaborative Filtering Score;
+
+:Combine Weighted Scores;
+
+if (Score > Threshold?) then (Yes)
+  :Add to Match Suggestions;
+else (No)
+  :Discard Candidate;
+endif
+
+stop
+
+@enduml
+
+@startuml
+
+start
+
+:Fetch Candidate Users;
+
+:Calculate Tech Stack Similarity;
+
+:Calculate Interest Similarity;
+
+:Calculate Experience Match;
+
+:Calculate Location Proximity;
+
+:Calculate Collaborative Filtering;
+
+:Compute Final Score;
+
+if (Score above threshold?) then (Yes)
+  :Add to suggestions;
+else (No)
+  :Discard candidate;
+endif
+
+stop
+
+@enduml

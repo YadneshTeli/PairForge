@@ -1,0 +1,23 @@
+@startuml
+
+actor UserA
+actor UserB
+
+node "WebSocket Gateway"
+
+component "Chat Service"
+
+database "Redis Pub/Sub"
+
+database "PostgreSQL"
+
+UserA --> "WebSocket Gateway"
+UserB --> "WebSocket Gateway"
+
+"WebSocket Gateway" --> "Chat Service"
+
+"Chat Service" --> "Redis Pub/Sub"
+
+"Chat Service" --> "PostgreSQL"
+
+@enduml

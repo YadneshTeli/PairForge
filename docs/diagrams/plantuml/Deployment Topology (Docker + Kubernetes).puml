@@ -1,0 +1,69 @@
+@startuml
+
+node "Developer Machine" {
+  component "Flutter App"
+}
+
+node "Cloud Infrastructure" {
+
+  node "Kubernetes Cluster" {
+
+    component "API Gateway"
+    component "Auth Service"
+    component "Match Service"
+    component "Chat Service"
+    component "Project Service"
+
+  }
+
+  node "Database Layer" {
+    component "PostgreSQL"
+    component "Redis"
+  }
+
+}
+
+"Flutter App" --> "API Gateway"
+
+"API Gateway" --> "Auth Service"
+"API Gateway" --> "Match Service"
+"API Gateway" --> "Chat Service"
+
+"Match Service" --> "PostgreSQL"
+"Chat Service" --> "Redis"
+
+@enduml
+
+@startuml
+
+node "User Device" {
+  component "Flutter App"
+}
+
+node "Cloud Infrastructure" {
+
+  node "Kubernetes Cluster" {
+    component "API Gateway"
+    component "Auth Service"
+    component "Match Service"
+    component "Chat Service"
+    component "Project Service"
+  }
+
+  node "Database Layer" {
+    component "PostgreSQL"
+    component "Redis"
+  }
+
+}
+
+"Flutter App" --> "API Gateway"
+
+"API Gateway" --> "Auth Service"
+"API Gateway" --> "Match Service"
+"API Gateway" --> "Chat Service"
+
+"Match Service" --> "PostgreSQL"
+"Chat Service" --> "Redis"
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+
+actor User
+
+node "Mobile Device" {
+  component "Flutter App"
+  component "Secure Token Storage"
+}
+
+node "Edge Layer" {
+  component "CDN / WAF"
+  component "API Gateway"
+}
+
+node "Backend Services" {
+  component "Auth Service"
+  component "Match Service"
+  component "Chat Service"
+}
+
+node "Security Layer" {
+  component "JWT Authentication"
+  component "Rate Limiter"
+  component "Input Validation"
+}
+
+node "Data Layer" {
+  database "PostgreSQL"
+  database "Redis"
+}
+
+User --> "Flutter App"
+
+"Flutter App" --> "API Gateway" : HTTPS
+
+"API Gateway" --> "JWT Authentication"
+
+"JWT Authentication" --> "Auth Service"
+
+"API Gateway" --> "Rate Limiter"
+
+"Rate Limiter" --> "Match Service"
+"Rate Limiter" --> "Chat Service"
+
+"Match Service" --> "PostgreSQL"
+"Chat Service" --> "Redis"
+
+@enduml

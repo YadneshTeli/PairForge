@@ -1,0 +1,23 @@
+@startuml
+
+component "Match Service"
+
+component "AI Match Engine"
+
+component "Feature Extractor"
+
+component "Similarity Engine"
+
+database "User Profiles"
+
+database "Swipe History"
+
+"Match Service" --> "AI Match Engine"
+
+"AI Match Engine" --> "Feature Extractor"
+"Feature Extractor" --> "Similarity Engine"
+
+"Similarity Engine" --> "User Profiles"
+"Similarity Engine" --> "Swipe History"
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+
+class BaseNotifier
+
+class AuthNotifier
+class MatchNotifier
+class ChatNotifier
+class ProjectNotifier
+class EventNotifier
+
+BaseNotifier <|-- AuthNotifier
+BaseNotifier <|-- MatchNotifier
+BaseNotifier <|-- ChatNotifier
+BaseNotifier <|-- ProjectNotifier
+BaseNotifier <|-- EventNotifier
+
+AuthNotifier --> AuthRepository
+MatchNotifier --> MatchRepository
+ChatNotifier --> ChatRepository
+
+@enduml
+
+@startuml
+
+class BaseNotifier
+
+class AuthNotifier
+class MatchNotifier
+class ChatNotifier
+class ProjectNotifier
+class EventNotifier
+
+BaseNotifier <|-- AuthNotifier
+BaseNotifier <|-- MatchNotifier
+BaseNotifier <|-- ChatNotifier
+BaseNotifier <|-- ProjectNotifier
+BaseNotifier <|-- EventNotifier
+
+@enduml
