@@ -1,0 +1,39 @@
+# Force LF line endings for shell scripts and text files
+* text=auto
+
+*.sh text eol=lf
+*.bash text eol=lf
+Makefile text eol=lf
+
+# Dart/Flutter
+*.dart text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# PlantUML / Markdown
+*.puml text eol=lf
+*.md text eol=lf
+
+# SQL
+*.sql text eol=lf
+
+# Python
+*.py text eol=lf
+
+# JavaScript / TypeScript
+*.js text eol=lf
+*.ts text eol=lf
+
+# Windows-specific: keep CRLF only where needed
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files — no line ending conversion
+*.png binary
+*.jpg binary
+*.ico binary
+*.jar binary
+*.so binary
+*.ttf binary
+*.otf binary
