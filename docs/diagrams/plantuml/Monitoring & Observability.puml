@@ -1,0 +1,16 @@
+@startuml
+
+component "Microservices"
+component "Prometheus"
+component "Grafana"
+component "ELK Stack"
+component "Sentry"
+
+"Microservices" --> "Prometheus"
+"Prometheus" --> "Grafana"
+
+"Microservices" --> "ELK Stack"
+
+"Microservices" --> "Sentry"
+
+@enduml
