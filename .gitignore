@@ -1,0 +1,88 @@
+# ─── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+nbproject/
+.settings/
+
+# ─── Environment / Secrets ────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# ─── Flutter / Dart ───────────────────────────────────────────────────────────
+mobile/pairforge-app/build/
+mobile/pairforge-app/.dart_tool/
+mobile/pairforge-app/.flutter-plugins
+mobile/pairforge-app/.flutter-plugins-dependencies
+mobile/pairforge-app/.pub-cache/
+mobile/pairforge-app/.pub/
+mobile/pairforge-app/doc/api/
+mobile/pairforge-app/*.g.dart
+mobile/pairforge-app/*.freezed.dart
+
+# Android
+mobile/pairforge-app/android/.gradle/
+mobile/pairforge-app/android/local.properties
+mobile/pairforge-app/android/key.properties
+mobile/pairforge-app/android/app/google-services.json
+
+# iOS / macOS
+mobile/pairforge-app/ios/Pods/
+mobile/pairforge-app/ios/Flutter/ephemeral/
+mobile/pairforge-app/macos/Pods/
+mobile/pairforge-app/macos/Flutter/ephemeral/
+mobile/pairforge-app/ios/.symlinks/
+
+# ─── Node.js (backend services) ───────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+dist/
+out/
+
+# ─── Python (AI services) ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+*.so
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── Database ─────────────────────────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+
+# ─── Coverage ─────────────────────────────────────────────────────────────────
+coverage/
+*.lcov
+htmlcov/
+
+# ─── Kotlin / Gradle errors ───────────────────────────────────────────────────
+mobile/pairforge-app/android/.kotlin/
