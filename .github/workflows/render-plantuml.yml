@@ -27,7 +27,7 @@ jobs:
 
       - name: Render PlantUML → SVG
         run: |
-          find docs/diagrams/plantuml -name "*.puml" | while read f; do
+          find docs/diagrams/plantuml -name "*.puml" -print0 | while IFS= read -r -d '' f; do
             java -jar /usr/local/bin/plantuml.jar -svg "$f"
             echo "Rendered: $f"
           done
@@ -36,4 +36,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: render PlantUML diagrams to SVG [skip ci]"
-          file_pattern: "docs/diagrams/plantuml/**/*.svg"
+          file_pattern: "docs/diagrams/plantuml/*.svg docs/diagrams/plantuml/**/*.svg"
