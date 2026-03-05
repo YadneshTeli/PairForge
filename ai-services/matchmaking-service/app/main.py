@@ -17,3 +17,7 @@ async def score_match(user_a_id: str, user_b_id: str):
 async def get_recommendations(user_id: str, limit: int = 10):
     matches = await find_similar_users(user_id, limit=limit)
     return {"user_id": user_id, "recommendations": matches}
+
+@app.get("/")
+async def root():
+    return {"message": "PairForge Matchmaking API is running"}
