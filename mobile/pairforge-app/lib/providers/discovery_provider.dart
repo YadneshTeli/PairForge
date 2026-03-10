@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'dio_provider.dart';
+import '../repositories/match_repository.dart';
 import 'auth_provider.dart';
 
 // ─── Profile Card Model ───────────────────────────────────────────────────────
@@ -73,12 +73,12 @@ class DiscoveryState {
 // ─── Discovery Notifier ───────────────────────────────────────────────────────
 
 class DiscoveryNotifier extends Notifier<DiscoveryState> {
-  late final Dio _dio;
+  late final MatchRepository _repo;
   late final String _userId;
 
   @override
   DiscoveryState build() {
-    _dio = ref.read(dioProvider);
+    _repo = ref.read(matchRepositoryProvider);
     _userId = ref.read(authStateProvider).userId ?? '';
     fetchProfiles();
     return const DiscoveryState();
@@ -87,28 +87,22 @@ class DiscoveryNotifier extends Notifier<DiscoveryState> {
   Future<void> fetchProfiles() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response =
-          await _dio.get('/match/recommendations/$_userId', queryParameters: {
-        'limit': 20,
-      });
-      final profiles = (response.data['recommendations'] as List)
-          .map((e) => DiscoveryProfile.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final data = await _repo.getRecommendations(_userId);
+      final profiles =
+          data.map((e) => DiscoveryProfile.fromJson(e)).toList();
       state = state.copyWith(profiles: profiles, isLoading: false);
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data['message'] as String? ?? 'Failed to load profiles',
+        error:
+            e.response?.data['message'] as String? ?? 'Failed to load profiles',
       );
     }
   }
 
   Future<void> swipeRight(String targetUserId) async {
     try {
-      await _dio.post('/match/like', data: {
-        'userId': _userId,
-        'targetUserId': targetUserId,
-      });
+      await _repo.swipeRight(_userId, targetUserId);
     } catch (_) {}
     _advance();
   }

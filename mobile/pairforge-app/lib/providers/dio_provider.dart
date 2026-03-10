@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/config/app_config.dart';
+import '../core/services/api_service.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -19,7 +21,11 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) async {
-        // Token injection handled by auth interceptor (see auth_provider)
+        const storage = FlutterSecureStorage();
+        final token = await storage.read(key: 'auth_token');
+        if (token != null) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
         handler.next(options);
       },
       onError: (error, handler) async {
@@ -42,3 +48,7 @@ final dioProvider = Provider<Dio>((ref) {
 
   return dio;
 });
+
+final apiServiceProvider = Provider<ApiService>(
+  (ref) => ApiService(ref.read(dioProvider)),
+);

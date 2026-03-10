@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../core/config/app_config.dart';
+import '../core/services/websocket_service.dart';
 
 final socketProvider = Provider<io.Socket>((ref) {
   final socket = io.io(
@@ -31,3 +32,7 @@ class SocketConnectedNotifier extends Notifier<bool> {
 
 final socketConnectedProvider =
     NotifierProvider<SocketConnectedNotifier, bool>(SocketConnectedNotifier.new);
+
+final webSocketServiceProvider = Provider<WebSocketService>(
+  (ref) => WebSocketService(ref.read(socketProvider)),
+);

@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dio_provider.dart';
-import 'storage_provider.dart';
+import '../repositories/auth_repository.dart';
 
 // ─── Auth State ──────────────────────────────────────────────────────────────
 
@@ -41,26 +39,22 @@ class AuthState {
 // ─── Auth Notifier ───────────────────────────────────────────────────────────
 
 class AuthNotifier extends Notifier<AuthState> {
-  late final Dio _dio;
-  late final FlutterSecureStorage _storage;
+  late final AuthRepository _repo;
 
   @override
   AuthState build() {
-    _dio = ref.read(dioProvider);
-    _storage = ref.read(secureStorageProvider);
+    _repo = ref.read(authRepositoryProvider);
     _restoreSession();
     return const AuthState();
   }
 
   Future<void> _restoreSession() async {
-    final token = await _storage.read(key: 'auth_token');
-    final userId = await _storage.read(key: 'user_id');
-    if (token != null && userId != null) {
-      _dio.options.headers['Authorization'] = 'Bearer $token';
+    final session = await _repo.restoreSession();
+    if (session != null) {
       state = state.copyWith(
         isAuthenticated: true,
-        token: token,
-        userId: userId,
+        token: session.token,
+        userId: session.userId,
       );
     }
   }
@@ -68,21 +62,11 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _dio.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
-      final token = response.data['token'] as String;
-      final userId = response.data['userId'] as String;
-
-      await _storage.write(key: 'auth_token', value: token);
-      await _storage.write(key: 'user_id', value: userId);
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-
+      final session = await _repo.login(email, password);
       state = state.copyWith(
         isAuthenticated: true,
-        token: token,
-        userId: userId,
+        token: session.token,
+        userId: session.userId,
         isLoading: false,
       );
     } on DioException catch (e) {
@@ -96,22 +80,11 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> signup(String email, String password, String username) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _dio.post('/auth/register', data: {
-        'email': email,
-        'password': password,
-        'username': username,
-      });
-      final token = response.data['token'] as String;
-      final userId = response.data['userId'] as String;
-
-      await _storage.write(key: 'auth_token', value: token);
-      await _storage.write(key: 'user_id', value: userId);
-      _dio.options.headers['Authorization'] = 'Bearer $token';
-
+      final session = await _repo.signup(email, password, username);
       state = state.copyWith(
         isAuthenticated: true,
-        token: token,
-        userId: userId,
+        token: session.token,
+        userId: session.userId,
         isLoading: false,
       );
     } on DioException catch (e) {
@@ -123,8 +96,7 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _storage.deleteAll();
-    _dio.options.headers.remove('Authorization');
+    await _repo.logout();
     state = const AuthState();
   }
 }
