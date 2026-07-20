@@ -12,6 +12,31 @@ PairForge is a developer-matching platform that helps engineers find collaborato
 - **Event Board** � Hackathons, meetups, and coding events
 - **Cross-platform** � Flutter mobile app (Android, iOS, Web)
 
+## My Contribution
+
+I implemented the **AI Matchmaking Service** responsible for generating developer compatibility scores.
+
+Location:
+ai-services/matchmaking-service
+
+Key components implemented:
+
+• Skill embeddings using TF-IDF  
+• Compatibility scoring using cosine similarity  
+• Developer recommendation engine  
+• FastAPI-based AI microservice  
+
+Main API endpoints:
+
+GET /health  
+Check matchmaking service status.
+
+POST /match/score  
+Compute compatibility score between two developers.
+
+GET /match/recommendations/{user_id}  
+Return recommended developers based on skill similarity.
+
 ## Repository Structure
 
 ```text
