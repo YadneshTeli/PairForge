@@ -744,11 +744,25 @@ The PairForge AI system is designed as a **hybrid recommendation engine** combin
 -   machine learning ranking
 
 
----
 
-If you'd like, I can also generate a **visual AI system diagram pack (10+ diagrams)** specifically for this AI module, which will make it much easier for your colleague to understand the architecture.
 
----
+## AI Matchmaking Service Implementation (My Contribution)
+
+Location:
+ai-services/matchmaking-service
+
+This service implements the AI-powered matchmaking engine described in the architecture above.
+
+Features:
+- Developer skill embeddings using TF-IDF
+- Compatibility scoring using cosine similarity
+- Recommendation engine for similar developers
+- REST API built using FastAPI
+
+Key Endpoints:
+GET /health
+POST /match/score
+GET /match/recommendations/{user_id}
 
 # Architecture Diagrams
 
