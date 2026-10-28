@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pairforge-redis
+  labels:
+    app: pairforge-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pairforge-redis
+  template:
+    metadata:
+      labels:
+        app: pairforge-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
