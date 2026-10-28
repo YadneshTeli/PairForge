@@ -4,6 +4,7 @@ import { io as ioClient, type Socket } from 'socket.io-client';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { getPool, query } from '../src/db';
+import { languagesFromRepos } from '../src/modules/github';
 import { attachSocket } from '../src/socket';
 import { app, asAdmin, auth, prepareDatabase, RATINGS, register, resetData, shutdown } from './helpers';
 
@@ -358,7 +359,7 @@ describe('people matching', () => {
       0.35 * (1 / 3) + 0.2 * 0.5 + 0.1 * 1 + 0.1 * 0.5 + 0.25 * 0.5;
     expect(score.body.score).toBe(Math.round(expected * 1000) / 10);
 
-    const feed = await request(app).get('/api/people/feed?skill=typescript').set(auth(ada.token));
+    const feed = await request(app).get('/api/people/feed').set(auth(ada.token));
     expect(feed.body.people.map((person: { id: string }) => person.id)).toContain(grace.profile.id);
 
     const first = await request(app).post(`/api/people/${grace.profile.id}/swipe`).set(auth(ada.token)).send({ action: 'like' });
@@ -410,5 +411,75 @@ describe('events, teams, and devices', () => {
     expect(device.status).toBe(204);
     const guestNotes = await request(app).get('/api/notifications').set(auth(guest.token));
     expect(guestNotes.body.notifications.some((item: { type: string }) => item.type === 'join_accepted')).toBe(true);
+  });
+});
+
+describe('premium, github languages, and pair sessions', () => {
+  it('counts GitHub languages without calling the network', () => {
+    expect(
+      languagesFromRepos([
+        { language: 'TypeScript' },
+        { language: 'TypeScript' },
+        { language: null },
+        { language: 'Dart' },
+      ]),
+    ).toEqual([
+      { name: 'TypeScript', repos: 2 },
+      { name: 'Dart', repos: 1 },
+    ]);
+  });
+
+  it('keeps advanced people filters behind premium and syncs a pair document', async () => {
+    const ada = await register({ email: 'prem-ada@example.com', username: 'premada', role: 'developer' });
+    const grace = await register({ email: 'prem-grace@example.com', username: 'premgrace', role: 'founder' });
+    const locked = await request(app).get('/api/people/feed?skill=typescript').set(auth(ada.token));
+    expect(locked.status).toBe(402);
+
+    const adminToken = await asAdmin(ada.user.id, ada.user.email);
+    const granted = await request(app)
+      .patch(`/api/admin/profiles/${ada.profile.id}/premium`)
+      .set(auth(adminToken))
+      .send({ isPremium: true });
+    expect(granted.status).toBe(200);
+    const open = await request(app).get('/api/people/feed?skill=typescript').set(auth(adminToken));
+    expect(open.status).toBe(200);
+
+    await request(app).post(`/api/people/${grace.profile.id}/swipe`).set(auth(ada.token)).send({ action: 'like' });
+    const matched = await request(app)
+      .post(`/api/people/${ada.profile.id}/swipe`)
+      .set(auth(grace.token))
+      .send({ action: 'like' });
+    const matchId = matched.body.match.id as string;
+    const created = await request(app).post(`/api/matches/${matchId}/pair`).set(auth(ada.token));
+    expect(created.status).toBe(201);
+    expect(created.body.session.revision).toBe(0);
+
+    const server = createServer(app);
+    attachSocket(server);
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const port = (server.address() as AddressInfo).port;
+    const socket: Socket = await new Promise((resolve, reject) => {
+      const client = ioClient(`http://127.0.0.1:${port}`, {
+        auth: { token: grace.token },
+        transports: ['websocket'],
+        reconnection: false,
+      });
+      client.on('connect', () => resolve(client));
+      client.on('connect_error', reject);
+    });
+    try {
+      const state = new Promise<{ revision: number }>((resolve) => socket.on('pairState', resolve));
+      socket.emit('pairJoin', { matchId });
+      const opened = await state;
+      expect(opened.revision).toBe(0);
+      const edited = new Promise<{ document: string; revision: number }>((resolve) => socket.on('pairEdit', resolve));
+      socket.emit('pairEdit', { matchId, document: 'function hello() {}', revision: 0 });
+      const next = await edited;
+      expect(next.document).toBe('function hello() {}');
+      expect(next.revision).toBe(1);
+    } finally {
+      socket.close();
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
   });
 });

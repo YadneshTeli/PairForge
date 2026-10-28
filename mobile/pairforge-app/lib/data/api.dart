@@ -71,6 +71,13 @@ class PairforgeApi {
     return _send(_dio.put('/profile', data: body), (data) => Profile.fromJson(asJson(data)['profile']));
   }
 
+  Future<Profile> linkGithub(String username) {
+    return _send(
+      _dio.post('/profile/github', data: {'username': username}),
+      (data) => Profile.fromJson(asJson(data)['profile']),
+    );
+  }
+
   Future<Profile> updateSkills(List<Map<String, dynamic>> skills) {
     return _send(
       _dio.put('/profile/skills', data: {'skills': skills}),

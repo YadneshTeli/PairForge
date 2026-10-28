@@ -3,6 +3,7 @@ import { NavLink, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth';
 import {
   ChatPage,
+  PairPage,
   EventFormPage,
   EventPage,
   EventsPage,
@@ -68,6 +69,7 @@ export function App() {
         <Route path="/projects/:id/edit" element={<ProjectFormPage />} />
         <Route path="/projects/:id/requests" element={<RequestsPage />} />
         <Route path="/projects/:id" element={<ProjectPage />} />
+        <Route path="/matches/:id/pair" element={<PairPage />} />
         <Route path="/matches/:id" element={<ChatPage />} />
         <Route path="/matches" element={<MatchesPage />} />
         <Route path="/people/:id" element={<PersonPage />} />

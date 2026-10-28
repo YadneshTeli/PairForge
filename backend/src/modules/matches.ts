@@ -62,6 +62,28 @@ matchesRouter.get(
   }),
 );
 
+matchesRouter.post(
+  '/:id/pair',
+  asyncHandler(async (req, res) => {
+    await assertMember(req.params.id, req.user!.profileId);
+    const row = await one<{ id: string; match_id: string; document: string; revision: number }>(
+      `INSERT INTO pair_sessions (match_id)
+       VALUES ($1)
+       ON CONFLICT (match_id) DO UPDATE SET match_id = EXCLUDED.match_id
+       RETURNING id, match_id, document, revision`,
+      [req.params.id],
+    );
+    res.status(201).json({
+      session: {
+        id: row!.id,
+        matchId: row!.match_id,
+        document: row!.document,
+        revision: row!.revision,
+      },
+    });
+  }),
+);
+
 matchesRouter.get(
   '/:id/messages',
   asyncHandler(async (req, res) => {

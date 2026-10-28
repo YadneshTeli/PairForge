@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../../core/config/app_config.dart';
@@ -86,7 +87,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final me = ref.watch(authStateProvider).profileId;
     return Scaffold(
-      appBar: AppBar(title: const Text('Chat')),
+      appBar: AppBar(
+        title: const Text('Chat'),
+        actions: [
+          TextButton(onPressed: () => context.push('/matches/${widget.matchId}/pair'), child: const Text('Pair')),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

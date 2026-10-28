@@ -78,6 +78,15 @@ peopleRouter.get(
       params.push(req.query.intent);
       filters.push(`(p.connection_intent IS NULL OR p.connection_intent = $${params.length})`);
     }
+    const wantsAdvanced =
+      (typeof req.query.experience === 'string' && req.query.experience.length > 0) ||
+      (typeof req.query.skill === 'string' && req.query.skill.length > 0);
+    if (wantsAdvanced) {
+      const viewer = await one<{ is_premium: boolean }>('SELECT is_premium FROM profiles WHERE id = $1', [
+        req.user!.profileId,
+      ]);
+      if (!viewer?.is_premium) throw new HttpError(402, 'Advanced filters are a premium feature');
+    }
     if (typeof req.query.experience === 'string' && req.query.experience) {
       params.push(req.query.experience);
       filters.push(`p.experience_level = $${params.length}`);
@@ -100,7 +109,8 @@ peopleRouter.get(
     const rows = await query(
       `SELECT p.id, p.user_id, p.display_name, p.role, p.bio, p.avatar_url, p.location,
               p.experience_level, p.availability, p.github_url, p.linkedin_url, p.portfolio_url,
-              p.interests, p.connection_intent, p.visibility, p.latitude, p.longitude, p.created_at
+              p.interests, p.connection_intent, p.visibility, p.latitude, p.longitude,
+              p.is_premium, p.github_login, p.github_languages, p.created_at
        FROM profiles p
        WHERE ${filters.join(' AND ')}
        ORDER BY p.created_at DESC, p.id DESC

@@ -60,6 +60,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _location = TextEditingController();
   final _interests = TextEditingController();
   final _skills = TextEditingController();
+  final _github = TextEditingController();
   String? _experience;
   String? _intent;
   String _visibility = 'public';
@@ -90,6 +91,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _location.dispose();
     _interests.dispose();
     _skills.dispose();
+    _github.dispose();
     super.dispose();
   }
 
@@ -115,6 +117,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         'interests': interests,
       });
       await api.updateSkills(skills);
+      final github = _github.text.trim();
+      if (github.isNotEmpty) {
+        await api.linkGithub(github);
+      }
       ref.read(authStateProvider.notifier).rememberProfile(profile);
       ref.invalidate(_meProvider);
       ref.invalidate(peopleProvider);
@@ -180,6 +186,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   decoration: const InputDecoration(labelText: 'Skills', hintText: 'typescript 5\nflutter 3'),
                   maxLines: 4,
                 ),
+                const SizedBox(height: 12),
+                TextField(controller: _github, decoration: const InputDecoration(labelText: 'GitHub username')),
                 const SizedBox(height: 20),
                 FilledButton(onPressed: _saving ? null : _save, child: Text(_saving ? 'Saving…' : 'Save')),
               ],

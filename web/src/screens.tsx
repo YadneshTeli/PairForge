@@ -465,6 +465,7 @@ export function ChatPage() {
 
   return (
     <div className="card stack">
+      <Link to={`/matches/${id}/pair`}>Open pair session</Link>
       <div className="messages">
         {messages.length === 0 && <Empty title="No messages yet" message="This chat just opened. Say hello." />}
         {messages.map((message) => (
@@ -484,12 +485,110 @@ export function ChatPage() {
   );
 }
 
+export function PairPage() {
+  const { id = '' } = useParams();
+  const [documentText, setDocumentText] = useState('');
+  const [cameraError, setCameraError] = useState('');
+  const revision = useRef(0);
+  const socketRef = useRef<ReturnType<typeof io> | null>(null);
+  const peerRef = useRef<RTCPeerConnection | null>(null);
+  const localVideo = useRef<HTMLVideoElement | null>(null);
+  const remoteVideo = useRef<HTMLVideoElement | null>(null);
+
+  function peer() {
+    if (peerRef.current) return peerRef.current;
+    const connection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    connection.onicecandidate = (event) => {
+      if (event.candidate) {
+        socketRef.current?.emit('pairSignal', { matchId: id, signal: { candidate: event.candidate.toJSON() } });
+      }
+    };
+    connection.ontrack = (event) => {
+      if (remoteVideo.current) remoteVideo.current.srcObject = event.streams[0] ?? null;
+    };
+    peerRef.current = connection;
+    return connection;
+  }
+
+  useEffect(() => {
+    const token = authToken();
+    if (!token) return undefined;
+    const socket = io(WS_URL, { auth: { token }, transports: ['websocket'] });
+    socketRef.current = socket;
+    socket.on('connect', () => socket.emit('pairJoin', { matchId: id }));
+    const apply = (state: { document: string; revision: number }) => {
+      revision.current = state.revision;
+      setDocumentText(state.document);
+    };
+    socket.on('pairState', apply);
+    socket.on('pairEdit', apply);
+    socket.on('pairSignal', async (payload: { signal?: { sdp?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit } }) => {
+      const signal = payload.signal;
+      if (!signal) return;
+      const connection = peer();
+      if (signal.sdp) {
+        await connection.setRemoteDescription(signal.sdp);
+        if (signal.sdp.type === 'offer') {
+          const answer = await connection.createAnswer();
+          await connection.setLocalDescription(answer);
+          socket.emit('pairSignal', { matchId: id, signal: { sdp: connection.localDescription } });
+        }
+      } else if (signal.candidate) {
+        await connection.addIceCandidate(signal.candidate);
+      }
+    });
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+      peerRef.current?.close();
+      peerRef.current = null;
+    };
+  }, [id]);
+
+  async function startVideo() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      if (localVideo.current) localVideo.current.srcObject = stream;
+      const connection = peer();
+      stream.getTracks().forEach((track) => connection.addTrack(track, stream));
+      const offer = await connection.createOffer();
+      await connection.setLocalDescription(offer);
+      socketRef.current?.emit('pairSignal', { matchId: id, signal: { sdp: offer } });
+    } catch (err) {
+      setCameraError(err instanceof Error ? err.message : 'Camera is unavailable');
+    }
+  }
+
+  return (
+    <div className="stack">
+      <h1>Pair session</h1>
+      <p>The document stays in sync. Video uses a public STUN server and stays on this call.</p>
+      <textarea
+        rows={16}
+        value={documentText}
+        onChange={(event) => {
+          const next = event.target.value;
+          setDocumentText(next);
+          socketRef.current?.emit('pairEdit', { matchId: id, document: next, revision: revision.current });
+        }}
+      />
+      <div className="row">
+        <video ref={localVideo} autoPlay muted playsInline width={240} />
+        <video ref={remoteVideo} autoPlay playsInline width={240} />
+      </div>
+      <button type="button" onClick={startVideo}>Start video</button>
+      {cameraError && <p className="error">{cameraError}</p>}
+    </div>
+  );
+}
+
 export function PeoplePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const people = useQuery({ queryKey: ['people'], queryFn: () => api<{ people: Profile[] }>('/people/feed') });
   const [gone, setGone] = useState<string[]>([]);
   const [error, setError] = useState('');
+  const [skill, setSkill] = useState('');
   const person = (people.data?.people ?? []).find((item) => !gone.includes(item.id));
   if (people.isLoading) return <p>Loading…</p>;
   if (people.error) return <p className="error">{(people.error as Error).message}</p>;
@@ -523,6 +622,18 @@ export function PeoplePage() {
         <button className="ghost" type="button" onClick={() => swipe('pass')}>Pass</button>
         <button type="button" onClick={() => swipe('like')}>Like</button>
       </div>
+      <form className="row" onSubmit={async (event) => {
+        event.preventDefault();
+        try {
+          await api(`/people/feed?skill=${encodeURIComponent(skill)}`);
+          setError('');
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Filter failed');
+        }
+      }}>
+        <input value={skill} onChange={(event) => setSkill(event.target.value)} placeholder="Filter by skill (premium)" />
+        <button className="ghost" type="submit">Filter</button>
+      </form>
     </div>
   );
 }
@@ -583,6 +694,10 @@ export function ProfilePage() {
         }),
       });
       await api('/profile/skills', { method: 'PUT', body: JSON.stringify({ skills }) });
+      const github = String(data.get('github') ?? '').trim();
+      if (github) {
+        await api('/profile/github', { method: 'POST', body: JSON.stringify({ username: github }) });
+      }
       rememberProfile(updated.profile);
       await queryClient.invalidateQueries({ queryKey: ['me'] });
       await queryClient.invalidateQueries({ queryKey: ['people'] });
@@ -622,6 +737,7 @@ export function ProfilePage() {
       </label>
       <label>Interests<input name="interests" defaultValue={me.interests.join(', ')} /></label>
       <label>Skills<textarea name="skills" defaultValue={me.skills.map((skill) => `${skill.name} ${skill.proficiency}`).join('\n')} rows={4} /></label>
+      <label>GitHub username<input name="github" placeholder="octocat" /></label>
       {error && <p className="error">{error}</p>}
       <button type="submit">Save profile</button>
       <button className="ghost" type="button" onClick={logout}>Log out</button>

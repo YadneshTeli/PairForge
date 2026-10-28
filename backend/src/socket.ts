@@ -131,6 +131,76 @@ export function attachSocket(server: HttpServer): Server {
         readAt: updated.read_at,
       });
     });
+
+    socket.on('pairJoin', async (payload: unknown) => {
+      const matchId = matchIdFrom(payload);
+      if (!matchId) return;
+      const match = await one<{ id: string }>(
+        `SELECT id FROM matches WHERE id = $1 AND (user_a_id = $2 OR user_b_id = $2)`,
+        [matchId, user.profileId],
+      );
+      if (!match) {
+        socket.emit('error', { error: 'forbidden' });
+        return;
+      }
+      const session = await one<{ document: string; revision: number }>(
+        `INSERT INTO pair_sessions (match_id)
+         VALUES ($1)
+         ON CONFLICT (match_id) DO UPDATE SET match_id = EXCLUDED.match_id
+         RETURNING document, revision`,
+        [matchId],
+      );
+      await socket.join(`pair:${matchId}`);
+      socket.emit('pairState', { matchId, document: session!.document, revision: session!.revision });
+    });
+
+    socket.on('pairEdit', async (payload: unknown) => {
+      const matchId = matchIdFrom(payload);
+      const body = payload && typeof payload === 'object' ? (payload as { document?: unknown; revision?: unknown }) : {};
+      const document = typeof body.document === 'string' ? body.document.slice(0, 20000) : null;
+      const revision = typeof body.revision === 'number' ? body.revision : null;
+      if (!matchId || document == null || revision == null) return;
+      const member = await one(
+        `SELECT id FROM matches WHERE id = $1 AND (user_a_id = $2 OR user_b_id = $2)`,
+        [matchId, user.profileId],
+      );
+      if (!member) {
+        socket.emit('error', { error: 'forbidden' });
+        return;
+      }
+      const updated = await one<{ document: string; revision: number }>(
+        `UPDATE pair_sessions
+         SET document = $2, revision = revision + 1, updated_at = NOW()
+         WHERE match_id = $1 AND revision = $3
+         RETURNING document, revision`,
+        [matchId, document, revision],
+      );
+      if (!updated) {
+        const current = await one<{ document: string; revision: number }>(
+          'SELECT document, revision FROM pair_sessions WHERE match_id = $1',
+          [matchId],
+        );
+        if (current) socket.emit('pairState', { matchId, document: current.document, revision: current.revision });
+        return;
+      }
+      io.to(`pair:${matchId}`).emit('pairEdit', {
+        matchId,
+        document: updated.document,
+        revision: updated.revision,
+      });
+    });
+
+    socket.on('pairSignal', async (payload: unknown) => {
+      const matchId = matchIdFrom(payload);
+      const signal = payload && typeof payload === 'object' ? (payload as { signal?: unknown }).signal : null;
+      if (!matchId || signal == null) return;
+      const member = await one(
+        `SELECT id FROM matches WHERE id = $1 AND (user_a_id = $2 OR user_b_id = $2)`,
+        [matchId, user.profileId],
+      );
+      if (!member) return;
+      socket.to(`pair:${matchId}`).emit('pairSignal', { matchId, from: user.profileId, signal });
+    });
   });
 
   return io;

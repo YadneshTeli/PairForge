@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../features/chat/chat_screen.dart';
+import '../features/chat/pair_screen.dart';
 import '../features/chat/matches_screen.dart';
 import '../features/events/event_detail_screen.dart';
 import '../features/events/events_screen.dart';
@@ -72,6 +73,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/projects/:projectId',
         parentNavigatorKey: _rootKey,
         builder: (context, state) => ProjectDetailScreen(projectId: state.pathParameters['projectId']!),
+      ),
+      GoRoute(
+        path: '/matches/:matchId/pair',
+        parentNavigatorKey: _rootKey,
+        builder: (context, state) => PairScreen(matchId: state.pathParameters['matchId']!),
       ),
       GoRoute(
         path: '/matches/:matchId',

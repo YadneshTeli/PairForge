@@ -162,3 +162,20 @@ adminRouter.patch(
     res.json({ weight: { role: row.role, weight: Number(row.weight) } });
   }),
 );
+
+const premiumSchema = z.object({
+  isPremium: z.boolean(),
+});
+
+adminRouter.patch(
+  '/profiles/:id/premium',
+  validateBody(premiumSchema),
+  asyncHandler(async (req, res) => {
+    const row = await one<{ id: string; is_premium: boolean }>(
+      `UPDATE profiles SET is_premium = $2, updated_at = NOW() WHERE id = $1 RETURNING id, is_premium`,
+      [req.params.id, (req.body as z.infer<typeof premiumSchema>).isPremium],
+    );
+    if (!row) throw new HttpError(404, 'Profile not found');
+    res.json({ profile: { id: row.id, isPremium: row.is_premium } });
+  }),
+);

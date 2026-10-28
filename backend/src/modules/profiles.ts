@@ -4,6 +4,7 @@ import { ROLES } from '../config';
 import { one, query } from '../db';
 import { HttpError, isUniqueViolation } from '../errors';
 import { asyncHandler, requireAuth, validateBody } from '../middleware';
+import { fetchGithubLanguages } from './github';
 
 export interface SkillRow {
   id: string;
@@ -30,13 +31,16 @@ interface ProfileRow {
   visibility: string;
   latitude: number | null;
   longitude: number | null;
+  is_premium?: boolean;
+  github_login?: string | null;
+  github_languages?: Array<{ name: string; repos: number }>;
   created_at: Date;
 }
 
 const PROFILE_COLUMNS = `
   id, user_id, display_name, role, bio, avatar_url, location, experience_level,
   availability, github_url, linkedin_url, portfolio_url, interests, connection_intent,
-  visibility, latitude, longitude, created_at
+  visibility, latitude, longitude, is_premium, github_login, github_languages, created_at
 `;
 
 export async function loadSkills(profileIds: string[]): Promise<Map<string, SkillRow[]>> {
@@ -88,6 +92,9 @@ export function mapProfile(row: ProfileRow, skills: SkillRow[] = []) {
     visibility: row.visibility,
     latitude: row.latitude,
     longitude: row.longitude,
+    isPremium: row.is_premium === true,
+    githubLogin: row.github_login ?? null,
+    githubLanguages: row.github_languages ?? [],
     skills,
     createdAt: row.created_at,
   };
@@ -105,6 +112,8 @@ export function redactProfile(profile: PublicProfile, viewerId: string): PublicP
       avatarUrl: null,
       location: null,
       githubUrl: null,
+      githubLogin: null,
+      githubLanguages: [],
       linkedinUrl: null,
       portfolioUrl: null,
       latitude: null,
@@ -114,6 +123,8 @@ export function redactProfile(profile: PublicProfile, viewerId: string): PublicP
   return {
     ...profile,
     githubUrl: null,
+    githubLogin: null,
+    githubLanguages: [],
     linkedinUrl: null,
     portfolioUrl: null,
     latitude: null,
@@ -263,6 +274,50 @@ profileRouter.put(
     }
     const profile = await presentProfile(profileId, profileId);
     res.json({ profile });
+  }),
+);
+
+const githubSchema = z.object({
+  username: z.string().trim().regex(/^[A-Za-z0-9-]{1,39}$/, 'Enter a GitHub username'),
+});
+
+profileRouter.post(
+  '/github',
+  validateBody(githubSchema),
+  asyncHandler(async (req, res) => {
+    const username = (req.body as z.infer<typeof githubSchema>).username;
+    let languages;
+    try {
+      languages = await fetchGithubLanguages(username);
+    } catch (err) {
+      const status = typeof err === 'object' && err && 'status' in err ? Number((err as { status: number }).status) : 502;
+      throw new HttpError(status === 404 ? 404 : 502, err instanceof Error ? err.message : 'GitHub is unavailable');
+    }
+    const updated = await one<ProfileRow>(
+      `UPDATE profiles
+       SET github_login = $2, github_url = $3, github_languages = $4::jsonb, updated_at = NOW()
+       WHERE id = $1
+       RETURNING ${PROFILE_COLUMNS}`,
+      [req.user!.profileId, username, `https://github.com/${username}`, JSON.stringify(languages)],
+    );
+    const skills = await loadSkills([req.user!.profileId]);
+    res.json({ profile: mapProfile(updated!, skills.get(req.user!.profileId) ?? []) });
+  }),
+);
+
+const premiumRequestSchema = z.object({
+  note: z.string().trim().max(500).default(''),
+});
+
+profileRouter.post(
+  '/premium-request',
+  validateBody(premiumRequestSchema),
+  asyncHandler(async (req, res) => {
+    const row = await one<{ id: string }>(
+      `INSERT INTO premium_requests (profile_id, note) VALUES ($1, $2) RETURNING id`,
+      [req.user!.profileId, (req.body as z.infer<typeof premiumRequestSchema>).note],
+    );
+    res.status(201).json({ request: { id: row!.id } });
   }),
 );
 
