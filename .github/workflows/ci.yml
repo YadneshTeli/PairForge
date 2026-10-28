@@ -1,11 +1,21 @@
 name: CI
 
 on:
-  push:
   pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   backend:
+    name: Backend
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -49,6 +59,7 @@ jobs:
           JWT_SECRET: test-secret-test-secret
 
   flutter:
+    name: Flutter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +74,7 @@ jobs:
         working-directory: mobile/pairforge-app
 
   web:
+    name: Web
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,3 +87,54 @@ jobs:
         working-directory: web
       - run: npm run build
         working-directory: web
+
+  matchmaking:
+    name: Matchmaking
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-services/matchmaking-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install numpy fastapi pydantic httpx
+      - name: Smoke test without downloading the embedding model
+        env:
+          PAIRFORGE_DISABLE_TRANSFORMERS: "1"
+        run: |
+          python -c "from fastapi.testclient import TestClient; from app.main import app; client = TestClient(app); health = client.get('/health'); assert health.status_code == 200, health.text; missing = client.post('/match/score', json={'user_a_id': 'a', 'user_b_id': 'b'}); assert missing.status_code == 404, missing.text; feedback = client.post('/match/feedback', json={'user_id': 'a', 'target_id': 'b', 'signal': 'like'}); assert feedback.status_code == 200, feedback.text"
+
+  api-image:
+    name: API image
+    if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: false
+          tags: pairforge-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  main-merge-gate:
+    name: Main merge gate
+    if: always() && github.event_name == 'pull_request' && github.base_ref == 'main'
+    needs: [backend, flutter, web, matchmaking, api-image]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every main check to succeed
+        run: |
+          set -eu
+          results="backend=${{ needs.backend.result }} flutter=${{ needs.flutter.result }} web=${{ needs.web.result }} matchmaking=${{ needs.matchmaking.result }} api-image=${{ needs.api-image.result }}"
+          echo "$results"
+          for result in ${{ needs.backend.result }} ${{ needs.flutter.result }} ${{ needs.web.result }} ${{ needs.matchmaking.result }} ${{ needs.api-image.result }}; do
+            if [ "$result" != "success" ]; then
+              echo "A required check finished as: $result"
+              exit 1
+            fi
+          done
