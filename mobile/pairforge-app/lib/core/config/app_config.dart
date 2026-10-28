@@ -1,12 +1,20 @@
+import 'package:flutter/foundation.dart';
+
+import 'platform_host_stub.dart' if (dart.library.io) 'platform_host_io.dart';
+
 class AppConfig {
-  static late String apiBaseUrl;
-  static late String wsBaseUrl;
-  static late String environment;
+  static String apiBaseUrl = 'http://${platformHost()}:3000/api';
+  static String wsBaseUrl = 'http://${platformHost()}:3000';
+  static String environment = const String.fromEnvironment('ENV', defaultValue: 'development');
 
   static Future<void> initialize() async {
-    // Load from env or flavor config
-    apiBaseUrl = const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:3000');
-    wsBaseUrl = const String.fromEnvironment('WS_BASE_URL', defaultValue: 'ws://localhost:3001');
-    environment = const String.fromEnvironment('ENV', defaultValue: 'development');
+    const api = String.fromEnvironment('API_BASE_URL');
+    const ws = String.fromEnvironment('WS_BASE_URL');
+    const env = String.fromEnvironment('ENV');
+    if (api.isNotEmpty) apiBaseUrl = api;
+    if (ws.isNotEmpty) wsBaseUrl = ws;
+    if (env.isNotEmpty) environment = env;
   }
 }
+
+bool get isDevelopment => !kReleaseMode && AppConfig.environment == 'development';

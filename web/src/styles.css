@@ -1,0 +1,74 @@
+:root {
+  color: #1f1a17;
+  background: #f6f3ec;
+  font-family: Inter, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: inherit; }
+button, input, textarea, select { font: inherit; }
+
+.shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+.topbar, .nav {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+.nav { border-top: 1px solid #e6e0d6; background: #fffdf8; position: sticky; bottom: 0; }
+.nav a, .topbar a { text-decoration: none; }
+.nav a.active { font-weight: 700; }
+.page { max-width: 880px; margin: 0 auto; padding: 24px; }
+.card {
+  background: white;
+  border: 1px solid #e6e0d6;
+  border-radius: 20px;
+  padding: 24px;
+}
+.stack { display: grid; gap: 12px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+label { display: grid; gap: 6px; font-weight: 600; }
+input, textarea, select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #d9d1c5;
+  background: white;
+}
+button {
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: #5b4ddb;
+  color: white;
+  cursor: pointer;
+}
+button.ghost { background: white; color: #1f1a17; border: 1px solid #d9d1c5; }
+button.warn { background: #b45309; }
+button:disabled { opacity: 0.6; cursor: default; }
+.badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eeeafc;
+}
+.error { color: #9f1239; }
+.empty { text-align: center; padding: 48px 16px; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 26, 23, 0.4);
+  display: grid;
+  align-items: end;
+  justify-items: center;
+}
+.sheet { background: white; width: min(560px, 100%); border-radius: 24px 24px 0 0; padding: 24px; }
+.bubble { max-width: 70%; padding: 10px 14px; border-radius: 16px; margin-bottom: 8px; }
+.mine { margin-left: auto; background: #e7e3ff; }
+.theirs { background: #fff; border: 1px solid #e6e0d6; }
+.messages { min-height: 320px; display: flex; flex-direction: column; }
