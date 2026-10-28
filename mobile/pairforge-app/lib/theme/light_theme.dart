@@ -1,19 +1,36 @@
 import 'package:flutter/material.dart';
 
-final ThemeData lightTheme = ThemeData(
-  brightness: Brightness.light,
-  colorScheme: ColorScheme.fromSeed(
-    seedColor: const Color(0xFF6C63FF),
-    brightness: Brightness.light,
-  ),
+import '../core/constants/colors.dart';
+
+final lightTheme = ThemeData(
   useMaterial3: true,
   fontFamily: 'Inter',
+  colorScheme: ColorScheme.fromSeed(seedColor: AppColors.seed, surface: AppColors.paper),
+  scaffoldBackgroundColor: AppColors.paper,
   appBarTheme: const AppBarTheme(
-    centerTitle: true,
+    centerTitle: false,
     elevation: 0,
+    scrolledUnderElevation: 0,
+    backgroundColor: AppColors.paper,
+    foregroundColor: AppColors.ink,
   ),
   cardTheme: CardThemeData(
-    elevation: 2,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    elevation: 0,
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+      side: const BorderSide(color: Color(0xFFE6E0D6)),
+    ),
+  ),
+  inputDecorationTheme: const InputDecorationTheme(
+    filled: true,
+    fillColor: Colors.white,
+    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
   ),
 );

@@ -1,107 +1,148 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import '../repositories/auth_repository.dart';
 
-// ─── Auth State ──────────────────────────────────────────────────────────────
+import '../data/api.dart';
+import '../models/models.dart';
+import 'dio_provider.dart';
 
 class AuthState {
-  final bool isAuthenticated;
-  final String? userId;
-  final String? token;
-  final bool isLoading;
-  final String? error;
-
   const AuthState({
-    this.isAuthenticated = false,
-    this.userId,
+    this.ready = false,
     this.token,
+    this.userId,
+    this.profileId,
+    this.displayName,
+    this.role,
     this.isLoading = false,
     this.error,
   });
 
-  AuthState copyWith({
-    bool? isAuthenticated,
-    String? userId,
+  final bool ready;
+  final String? token;
+  final String? userId;
+  final String? profileId;
+  final String? displayName;
+  final String? role;
+  final bool isLoading;
+  final String? error;
+
+  bool get isAuthenticated => token != null && token!.isNotEmpty;
+
+  AuthState copy({
+    bool? ready,
     String? token,
+    String? userId,
+    String? profileId,
+    String? displayName,
+    String? role,
+    bool clearRole = false,
     bool? isLoading,
     String? error,
+    bool clearError = false,
   }) {
     return AuthState(
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      userId: userId ?? this.userId,
+      ready: ready ?? this.ready,
       token: token ?? this.token,
+      userId: userId ?? this.userId,
+      profileId: profileId ?? this.profileId,
+      displayName: displayName ?? this.displayName,
+      role: clearRole ? null : (role ?? this.role),
       isLoading: isLoading ?? this.isLoading,
-      error: error,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
 
-// ─── Auth Notifier ───────────────────────────────────────────────────────────
-
 class AuthNotifier extends Notifier<AuthState> {
-  late final AuthRepository _repo;
-
   @override
   AuthState build() {
-    _repo = ref.read(authRepositoryProvider);
-    _restoreSession();
+    Future.microtask(_restore);
     return const AuthState();
   }
 
-  Future<void> _restoreSession() async {
-    final session = await _repo.restoreSession();
-    if (session != null) {
-      state = state.copyWith(
-        isAuthenticated: true,
-        token: session.token,
-        userId: session.userId,
-      );
+  Future<void> _restore() async {
+    try {
+      final storage = ref.read(secureStorageProvider);
+      final token = await storage.read(key: authTokenKey);
+      if (token == null || token.isEmpty) {
+        state = const AuthState(ready: true);
+        return;
+      }
+      final session = await ref.read(apiProvider).me(token);
+      state = _fromSession(session);
+    } catch (_) {
+      state = const AuthState(ready: true);
     }
+  }
+
+  AuthState _fromSession(Session session) {
+    return AuthState(
+      ready: true,
+      token: session.token,
+      userId: session.userId,
+      profileId: session.profileId,
+      displayName: session.displayName,
+      role: session.role,
+    );
+  }
+
+  Future<void> _persist(Session session) async {
+    final storage = ref.read(secureStorageProvider);
+    await storage.write(key: authTokenKey, value: session.token);
+    state = _fromSession(session);
   }
 
   Future<void> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copy(isLoading: true, clearError: true);
     try {
-      final session = await _repo.login(email, password);
-      state = state.copyWith(
-        isAuthenticated: true,
-        token: session.token,
-        userId: session.userId,
-        isLoading: false,
-      );
-    } on DioException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.response?.data['message'] as String? ?? 'Login failed',
-      );
+      final session = await ref.read(apiProvider).login(email: email, password: password);
+      await _persist(session);
+    } on ApiException catch (error) {
+      state = state.copy(isLoading: false, error: error.message);
     }
   }
 
-  Future<void> signup(String email, String password, String username) async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> signup({
+    required String email,
+    required String username,
+    required String password,
+    required String displayName,
+  }) async {
+    state = state.copy(isLoading: true, clearError: true);
     try {
-      final session = await _repo.signup(email, password, username);
-      state = state.copyWith(
-        isAuthenticated: true,
-        token: session.token,
-        userId: session.userId,
-        isLoading: false,
+      final session = await ref.read(apiProvider).register(
+        email: email,
+        username: username,
+        password: password,
+        displayName: displayName,
       );
-    } on DioException catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.response?.data['message'] as String? ?? 'Signup failed',
-      );
+      await _persist(session);
+    } on ApiException catch (error) {
+      state = state.copy(isLoading: false, error: error.message);
     }
+  }
+
+  Future<String?> setRole(String role) async {
+    state = state.copy(isLoading: true, clearError: true);
+    try {
+      final profile = await ref.read(apiProvider).setRole(role);
+      state = state.copy(isLoading: false, role: profile.role, displayName: profile.displayName);
+      return null;
+    } on ApiException catch (error) {
+      state = state.copy(isLoading: false, error: error.message);
+      return error.message;
+    }
+  }
+
+  void rememberProfile(Profile profile) {
+    state = state.copy(displayName: profile.displayName, role: profile.role);
   }
 
   Future<void> logout() async {
-    await _repo.logout();
-    state = const AuthState();
+    try {
+      await ref.read(secureStorageProvider).delete(key: authTokenKey);
+    } catch (_) {}
+    state = const AuthState(ready: true);
   }
 }
 
-// ─── Provider ────────────────────────────────────────────────────────────────
-
-final authStateProvider =
-    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authStateProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
