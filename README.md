@@ -2,7 +2,7 @@
 
 > **Tinder for Developers** � Match, connect, and build together.
 
-PairForge is a developer-matching platform that helps engineers find collaborators based on tech stack compatibility, project interests, and coding style.
+PairForge is a developer-matching platform. The current app is one Express API: swipe and rate projects by role, see a weighted success score, and chat after the owner accepts. People matching, events, and the Python matchmaking service sit on the same API.
 
 ## Features
 
@@ -17,12 +17,12 @@ PairForge is a developer-matching platform that helps engineers find collaborato
 ```text
 pairforge-platform/
  docs/                  # Product, architecture & API documentation
- mobile/pairforge-app/  # Flutter cross-platform app
- backend/               # Node.js microservices
+ Dating-App/            # Projects MVP product and technical specs
+ mobile/pairforge-app/  # Flutter client
+ web/                   # React + Vite client
+ backend/               # Express + TypeScript API and SQL migrations
  ai-services/           # Python AI matchmaking service
  infrastructure/        # Docker, Kubernetes, Terraform, Monitoring
- database/              # Migrations, seeds, schema
- shared/                # Shared constants, utils, types
  scripts/               # Dev setup & utility scripts
 ```
 
@@ -45,7 +45,8 @@ bash scripts/start-dev.sh
 | Layer | Technology |
 | ----- | ----------- |
 | Mobile | Flutter / Dart |
-| Backend | Node.js, Express, Microservices |
+| Backend | Node.js, Express, TypeScript |
+| Web | React, Vite |
 | AI | Python, FastAPI, scikit-learn |
 | Database | PostgreSQL, Redis |
 | Infra | Docker, Kubernetes, Terraform |
