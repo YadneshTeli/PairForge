@@ -31,8 +31,14 @@ class ProjectFeedScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SectionTitle('Discover', 'Rate the next project from the seat you chose.'),
-              Expanded(child: _ProjectCard(project: project)),
+              const SectionTitle('Discover', 'Drag the card left to pass or right to like.'),
+              Expanded(
+                child: SwipeDeck(
+                  onPass: () => _swipe(context, ref, project, 'pass'),
+                  onLike: () => _swipe(context, ref, project, 'like'),
+                  child: _ProjectCard(project: project),
+                ),
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [

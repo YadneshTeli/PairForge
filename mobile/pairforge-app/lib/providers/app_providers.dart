@@ -47,10 +47,20 @@ class FeedNotifier extends AsyncNotifier<List<Project>> {
 
 final feedProvider = AsyncNotifierProvider<FeedNotifier, List<Project>>(FeedNotifier.new);
 
+class PeopleSkill extends Notifier<String> {
+  @override
+  String build() => '';
+
+  void set(String value) => state = value.trim();
+}
+
+final peopleSkillProvider = NotifierProvider<PeopleSkill, String>(PeopleSkill.new);
+
 class PeopleNotifier extends AsyncNotifier<List<Profile>> {
   @override
   Future<List<Profile>> build() async {
-    final page = await ref.watch(apiProvider).peopleFeed();
+    final skill = ref.watch(peopleSkillProvider);
+    final page = await ref.watch(apiProvider).peopleFeed(skill: skill.isEmpty ? null : skill);
     return page.items;
   }
 

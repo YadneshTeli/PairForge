@@ -31,6 +31,41 @@ class BrandMark extends StatelessWidget {
   }
 }
 
+class SwipeDeck extends StatefulWidget {
+  const SwipeDeck({super.key, required this.child, required this.onPass, required this.onLike});
+
+  final Widget child;
+  final VoidCallback onPass;
+  final VoidCallback onLike;
+
+  @override
+  State<SwipeDeck> createState() => _SwipeDeckState();
+}
+
+class _SwipeDeckState extends State<SwipeDeck> {
+  double _dx = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) => setState(() => _dx += details.delta.dx),
+      onHorizontalDragEnd: (_) {
+        final shift = _dx;
+        setState(() => _dx = 0);
+        if (shift <= -96) widget.onPass();
+        if (shift >= 96) widget.onLike();
+      },
+      child: Transform.translate(
+        offset: Offset(_dx, 0),
+        child: Transform.rotate(
+          angle: _dx / 800,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.title, this.lede, {super.key});
 
