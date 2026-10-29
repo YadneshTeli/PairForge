@@ -1,85 +1,148 @@
-# PairForge Platform
+# PairForge
 
-> **Tinder for Developers** � Match, connect, and build together.
+PairForge matches people who want to build together. You pick a role, rate projects from that seat, and connect when the interest is mutual. A superlike asks the project owner to accept. A mutual like between people opens a chat. From a match you can write in a shared document and start a call.
 
-PairForge is a developer-matching platform. The current app is one Express API: swipe and rate projects by role, see a weighted success score, and chat after the owner accepts. People matching, events, and the Python matchmaking service sit on the same API.
+The same product runs in two clients against one API:
 
-## Features
+- **Web** (`web/`) is a React and Vite app. It uses a rose, block-based interface: a side rail on desktop and a floating dock on a phone.
+- **Mobile** (`mobile/pairforge-app/`) is a Flutter app for Android, iOS, and web, with the same rose system and a floating bottom dock.
 
-- **Smart Matching** � AI-powered compatibility scoring based on skills and interests
-- **Real-time Chat & Pair Programming** � Built-in collaboration tools
-- **Project Discovery** � Find and join open-source or side projects
-- **Event Board** � Hackathons, meetups, and coding events
-- **Cross-platform** � Flutter mobile app (Android, iOS, Web)
+## What you can do
 
-## My Contribution
+- Sign up, then choose a role once: founder, cofounder, VC, developer, freelancer, or student.
+- Swipe a project feed. A like or superlike scores the idea on the criteria for your role. Owners see a success score from those ratings.
+- Post and edit your own projects, review join requests, and manage the team.
+- Swipe people, open a profile, and see a compatibility score.
+- Chat in real time. A pair session keeps a shared document in sync and can start video on the call.
+- Post and join meetups.
+- Read in-app notifications and edit your profile, skills, and GitHub username.
 
-I implemented the **AI Matchmaking Service** responsible for generating developer compatibility scores.
-
-Location:
-ai-services/matchmaking-service
-
-Key components implemented:
-
-• Skill embeddings using TF-IDF  
-• Compatibility scoring using cosine similarity  
-• Developer recommendation engine  
-• FastAPI-based AI microservice  
-
-Main API endpoints:
-
-GET /health  
-Check matchmaking service status.
-
-POST /match/score  
-Compute compatibility score between two developers.
-
-GET /match/recommendations/{user_id}  
-Return recommended developers based on skill similarity.
-
-## Repository Structure
+## Repository
 
 ```text
-pairforge-platform/
- docs/                  # Product, architecture & API documentation
- Dating-App/            # Projects MVP product and technical specs
- mobile/pairforge-app/  # Flutter client
- web/                   # React + Vite client
- backend/               # Express + TypeScript API and SQL migrations
- ai-services/           # Python AI matchmaking service
- infrastructure/        # Docker, Kubernetes, Terraform, Monitoring
- scripts/               # Dev setup & utility scripts
+web/                   React + Vite client
+mobile/pairforge-app/  Flutter client
+backend/               Express + TypeScript API, SQL migrations, Socket.IO
+ai-services/           Python matchmaking service
+infrastructure/        Docker Compose, Kubernetes, Terraform, monitoring
+scripts/               Setup and local Postgres/Redis helpers
+docs/                  Product and API notes
 ```
 
-## Getting Started
-
-```bash
-# Clone the repo
-git clone https://github.com/your-org/pairforge-platform.git
-cd pairforge-platform
-
-# Run setup
-bash scripts/setup.sh
-
-# Start development environment
-bash scripts/start-dev.sh
-```
-
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
-| ----- | ----------- |
-| Mobile | Flutter / Dart |
-| Backend | Node.js, Express, TypeScript |
-| Web | React, Vite |
-| AI | Python, FastAPI, scikit-learn |
-| Database | PostgreSQL, Redis |
-| Infra | Docker, Kubernetes, Terraform |
-| CI/CD | GitHub Actions |
+| ----- | ---------- |
+| Web | React 18, TypeScript, Vite, TanStack Query, React Router |
+| Mobile | Flutter, Riverpod, go_router |
+| API | Node.js, Express, TypeScript, Socket.IO, JWT |
+| Matchmaking | Python, FastAPI, TF-IDF embeddings, cosine similarity |
+| Data | PostgreSQL 16, Redis 7 |
+| Infra | Docker Compose |
+
+## Run it locally
+
+You need Node.js, Docker, and npm. Flutter is only required for the mobile app. Python is only required if you run the matchmaking service outside Docker.
+
+### 1. Install dependencies
+
+```bash
+cd backend && npm install
+cd ../web && npm install
+```
+
+Flutter, from `mobile/pairforge-app`:
+
+```bash
+flutter pub get
+```
+
+On macOS or Linux, `bash scripts/setup.sh` does these installs and also installs the Python service.
+
+### 2. Start Postgres and Redis
+
+From the repository root:
+
+```bash
+docker compose -f infrastructure/docker/docker-compose.yml up -d postgres redis
+```
+
+Postgres listens on `localhost:5432` (`postgres` / `password`, database `pairforge`). Redis listens on `localhost:6379`.
+
+`bash scripts/start-dev.sh` starts the same two containers.
+
+### 3. Start the API
+
+```bash
+cd backend
+copy .env.example .env   # Windows
+# cp .env.example .env   # macOS / Linux
+npm run dev
+```
+
+The API listens on [http://localhost:3000](http://localhost:3000). On startup it runs SQL migrations. Set `JWT_SECRET` in `.env` before you share a deployment. `CORS_ORIGIN=*` is the local default.
+
+### 4. Start a client
+
+Web, at [http://localhost:5173](http://localhost:5173):
+
+```bash
+cd web
+npm run dev
+```
+
+The web client calls `http://localhost:3000/api` unless `VITE_API_URL` is set.
+
+Flutter:
+
+```bash
+cd mobile/pairforge-app
+flutter run
+```
+
+### Matchmaking service
+
+Compatibility can call the Python service at `MATCHMAKING_URL` (default `http://localhost:8000`). Its routes:
+
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
+| GET | `/health` | Service status |
+| POST | `/match/score` | Compatibility score for two people |
+| GET | `/match/recommendations/{user_id}` | Suggested people from skill similarity |
+| POST | `/match/feedback` | Record a match outcome |
+
+Docker Compose can build it with the API:
+
+```bash
+docker compose -f infrastructure/docker/docker-compose.yml up -d --build api matchmaking-service
+```
+
+That image runs the API on port 3000 and matchmaking on port 8000, using the Postgres and Redis containers. For day-to-day UI work, Postgres and Redis in Docker plus `npm run dev` in `backend/` is enough.
+
+## Clients
+
+Both clients cover the same flows: sign in, sign up, role onboarding, project feed, your projects, requests, matches, chat, pair session, people, profile, events, and notifications.
+
+Web scripts:
+
+```bash
+cd web
+npm run dev      # Vite
+npm run build    # typecheck and production build
+```
+
+API scripts:
+
+```bash
+cd backend
+npm run dev      # tsx watch
+npm run migrate  # migrations only
+npm test
+```
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
