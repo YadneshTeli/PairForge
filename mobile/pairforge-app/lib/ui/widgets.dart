@@ -2,6 +2,57 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/colors.dart';
 
+class BrandMark extends StatelessWidget {
+  const BrandMark({super.key, this.size = 28});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final block = size * 0.62;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        children: [
+          Positioned(left: 0, top: 0, child: _block(block, AppColors.secondary)),
+          Positioned(right: 0, bottom: 0, child: _block(block, AppColors.primary)),
+        ],
+      ),
+    );
+  }
+
+  Widget _block(double side, Color color) {
+    return Container(
+      width: side,
+      height: side,
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(side * 0.3)),
+    );
+  }
+}
+
+class SectionTitle extends StatelessWidget {
+  const SectionTitle(this.title, this.lede, {super.key});
+
+  final String title;
+  final String lede;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 4),
+          Text(lede, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
 class RoleBadge extends StatelessWidget {
   const RoleBadge({super.key, required this.role});
 
@@ -9,17 +60,25 @@ class RoleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.role(role);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        roleLabel(role),
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: AppColors.rose100, borderRadius: BorderRadius.circular(999)),
+      child: Text(roleLabel(role), style: const TextStyle(color: AppColors.muted, fontSize: 12, fontWeight: FontWeight.w700)),
+    );
+  }
+}
+
+class StageChip extends StatelessWidget {
+  const StageChip(this.stage, {super.key});
+
+  final String stage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: AppColors.blue100, borderRadius: BorderRadius.circular(999)),
+      child: Text(pretty(stage), style: const TextStyle(color: AppColors.ctaDeep, fontSize: 12, fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -46,9 +105,11 @@ class EmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const BrandMark(size: 40),
+            const SizedBox(height: 16),
             Text(title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
+            Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 20),
               FilledButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -68,7 +129,10 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EmptyView(title: 'Something went wrong', message: message, actionLabel: 'Try again', onAction: onRetry);
+    final readable = message == 'Failed to fetch' || message.contains('SocketException')
+        ? "Can't reach the server. Check that the API is running, then try again."
+        : message;
+    return EmptyView(title: 'Something went wrong', message: readable, actionLabel: 'Try again', onAction: onRetry);
   }
 }
 
@@ -83,12 +147,100 @@ class ScoreReadout extends StatelessWidget {
   Widget build(BuildContext context) {
     final headline = band ?? 'No signal yet';
     final detail = score == null ? 'Waiting for ratings' : '${score!.toStringAsFixed(1)} / 5 · ${count ?? 0} ratings';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(headline, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-        Text(detail, style: Theme.of(context).textTheme.bodySmall),
-      ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(color: AppColors.paper, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(headline, style: Theme.of(context).textTheme.titleMedium),
+          Text(detail, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}
+
+class AuthScaffold extends StatelessWidget {
+  const AuthScaffold({super.key, required this.eyebrow, required this.title, required this.children});
+
+  final String eyebrow;
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            color: AppColors.primary,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'PAIRFORGE',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.4),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Build with the person who gets the idea.',
+                      style: TextStyle(color: Colors.white, fontSize: 32, height: 1.05, fontWeight: FontWeight.w700, letterSpacing: -0.8),
+                    ),
+                    const SizedBox(height: 16),
+                    _Proof('Rate', 'Score ideas on the criteria that match your role.'),
+                    const SizedBox(height: 8),
+                    _Proof('Match', 'A superlike asks the owner. A mutual like opens a chat.'),
+                    const SizedBox(height: 8),
+                    _Proof('Pair', 'Write together and join a call from the match.'),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              children: [
+                Text(eyebrow, style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
+                const SizedBox(height: 4),
+                Text(title, style: Theme.of(context).textTheme.headlineMedium),
+                const SizedBox(height: 20),
+                ...children,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Proof extends StatelessWidget {
+  const _Proof(this.title, this.body);
+
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700)),
+          Text(body, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+        ],
+      ),
     );
   }
 }
@@ -114,7 +266,10 @@ Future<String?> askForText(BuildContext context, {required String title, require
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         FilledButton(
-          onPressed: () => Navigator.pop(context, controller.text.trim()),
+          onPressed: () {
+            final value = controller.text.trim();
+            Navigator.pop(context, value);
+          },
           child: Text(action),
         ),
       ],

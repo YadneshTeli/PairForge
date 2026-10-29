@@ -26,7 +26,9 @@ class PeopleScreen extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SectionTitle('People', 'Find someone open to a connection.'),
               Expanded(
                 child: Card(
                   child: InkWell(

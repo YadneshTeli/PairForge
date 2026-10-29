@@ -6,6 +6,7 @@ import '../../data/api.dart';
 import '../../models/models.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/dio_provider.dart';
+import '../../core/constants/colors.dart';
 import '../../ui/widgets.dart';
 
 class ProjectFeedScreen extends ConsumerWidget {
@@ -28,7 +29,9 @@ class ProjectFeedScreen extends ConsumerWidget {
         return Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SectionTitle('Discover', 'Rate the next project from the seat you chose.'),
               Expanded(child: _ProjectCard(project: project)),
               const SizedBox(height: 16),
               Row(
@@ -48,7 +51,8 @@ class ProjectFeedScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: FilledButton.tonal(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(backgroundColor: AppColors.cta, foregroundColor: Colors.white),
                       onPressed: () => _swipe(context, ref, project, 'superlike'),
                       child: const Text('Superlike'),
                     ),
@@ -105,7 +109,7 @@ class _ProjectCard extends StatelessWidget {
                 children: [
                   RoleBadge(role: project.owner?.role),
                   const Spacer(),
-                  Text(project.stage),
+                  StageChip(project.stage),
                 ],
               ),
               const SizedBox(height: 20),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/colors.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/dio_provider.dart';
 import '../../ui/widgets.dart';
@@ -32,13 +33,20 @@ class NotificationsScreen extends ConsumerWidget {
             return const EmptyView(title: 'You are caught up', message: 'Connection requests and accepted matches will show up here.');
           }
           return ListView.separated(
+            padding: const EdgeInsets.all(16),
             itemCount: items.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final item = items[index];
-              return ListTile(
-                title: Text(item.title, style: TextStyle(fontWeight: item.unread ? FontWeight.w700 : FontWeight.w500)),
-                subtitle: Text(item.body),
+              return Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: item.unread ? AppColors.primary : AppColors.line, width: item.unread ? 1.5 : 1),
+                ),
+                child: ListTile(
+                  title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text(item.body),
+                ),
               );
             },
           );

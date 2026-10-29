@@ -23,28 +23,30 @@ class MyProjectsScreen extends ConsumerWidget {
             onAction: () => context.push('/projects/new'),
           );
         }
-        return ListView.separated(
+        return ListView(
           padding: const EdgeInsets.all(16),
-          itemCount: items.length + 1,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return FilledButton.icon(
-                onPressed: () => context.push('/projects/new'),
-                icon: const Icon(Icons.add),
-                label: const Text('Post a project'),
-              );
-            }
-            final project = items[index - 1];
-            return Card(
-              child: ListTile(
-                title: Text(project.title),
-                subtitle: ScoreReadout(band: project.band, score: project.successScore, count: project.ratingCount),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push('/projects/${project.id}'),
+          children: [
+            const SectionTitle('Your projects', 'Ideas you have posted, and how other roles scored them.'),
+            FilledButton.icon(
+              onPressed: () => context.push('/projects/new'),
+              icon: const Icon(Icons.add),
+              label: const Text('Post a project'),
+            ),
+            const SizedBox(height: 12),
+            for (final project in items) ...[
+              Card(
+                child: ListTile(
+                  title: Text(project.title),
+                  subtitle: Text(project.tagline),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/projects/${project.id}'),
+                ),
               ),
-            );
-          },
+              const SizedBox(height: 8),
+              ScoreReadout(band: project.band, score: project.successScore, count: project.ratingCount),
+              const SizedBox(height: 12),
+            ],
+          ],
         );
       },
     );
