@@ -1,4 +1,4 @@
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent, PointerEvent, ReactNode, useRef, useState } from 'react';
 
 export type IconName =
   | 'feed'
@@ -185,6 +185,50 @@ export function PromptDialog({
           <button type="submit" disabled={busy}>{busy ? 'Sending…' : submitLabel}</button>
         </div>
       </form>
+    </div>
+  );
+}
+
+export function SwipeCard({ children, onPass, onLike }: { children: ReactNode; onPass: () => void; onLike: () => void }) {
+  const origin = useRef<{ x: number; y: number } | null>(null);
+  const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+
+  function down(event: PointerEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest('a, button, input, textarea, select, label')) return;
+    origin.current = { x: event.clientX, y: event.clientY };
+    setDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function move(event: PointerEvent<HTMLDivElement>) {
+    if (!origin.current) return;
+    setDx(event.clientX - origin.current.x);
+  }
+
+  function up() {
+    if (!origin.current) return;
+    const shift = dx;
+    origin.current = null;
+    setDragging(false);
+    setDx(0);
+    if (shift <= -96) onPass();
+    else if (shift >= 96) onLike();
+  }
+
+  const lean = dx === 0 ? 'none' : dx > 0 ? 'like' : 'pass';
+  return (
+    <div
+      className={dragging ? 'swipe-card dragging' : 'swipe-card'}
+      style={{ transform: `translateX(${dx}px) rotate(${dx / 40}deg)` }}
+      data-lean={lean}
+      onPointerDown={down}
+      onPointerMove={move}
+      onPointerUp={up}
+      onPointerCancel={up}
+    >
+      {children}
     </div>
   );
 }

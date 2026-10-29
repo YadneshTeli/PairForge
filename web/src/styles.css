@@ -266,7 +266,7 @@ a.card {
   transition: border-color 200ms ease, background-color 200ms ease;
 }
 
-a.card:hover { border-color: var(--primary); background: #fff7f8; }
+a.card:hover { border-color: var(--primary); background: var(--rose-100); }
 
 .field { display: grid; gap: 6px; font-weight: 700; color: var(--ink); }
 .help { font-weight: 400; color: var(--muted); font-size: 0.875rem; }
@@ -344,7 +344,7 @@ a.card:hover { border-color: var(--primary); background: #fff7f8; }
 }
 
 .role-grid button span { font-family: var(--font-body); font-size: 0.875rem; font-weight: 600; color: var(--muted); }
-.role-grid button:hover { border-color: var(--primary); background: #fff7f8; }
+.role-grid button:hover { border-color: var(--primary); background: var(--rose-100); }
 
 .actions { display: flex; gap: 8px; }
 .actions > button, .actions > a.button { flex: 1; }
@@ -491,9 +491,26 @@ fieldset { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
 .blob.one { width: 180px; height: 180px; right: -36px; top: -28px; background: var(--secondary); }
 
 .proof { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.proof li { background: white; color: var(--ink); border-radius: 16px; padding: 16px 18px; display: grid; gap: 4px; }
-.proof strong { font-family: var(--font-display); }
-.proof span { color: var(--muted); }
+.proof li { background: white; color: #881337; border-radius: 16px; padding: 16px 18px; display: grid; gap: 4px; }
+.proof span { color: #9f1239; }
+
+.swipe-card { touch-action: pan-y; transition: transform 200ms ease; cursor: grab; }
+.swipe-card.dragging { transition: none; cursor: grabbing; }
+.swipe-card[data-lean="like"] { outline: 2px solid var(--primary); outline-offset: 4px; }
+.swipe-card[data-lean="pass"] { outline: 2px solid var(--muted); outline-offset: 4px; }
+
+[data-theme="dark"] {
+  --bg: #4c0519;
+  --surface: #3f0d18;
+  --ink: #fff1f2;
+  --muted: #fecdd3;
+  --line: #9f1239;
+  --line-strong: #be123c;
+  --rose-100: #881337;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  color-scheme: dark;
+}
+.proof strong { font-family: var(--font-display); color: #881337; }
 
 .auth-panel { display: grid; align-items: center; padding: 32px 24px; }
 .auth-panel .card { width: min(440px, 100%); margin: 0 auto; }

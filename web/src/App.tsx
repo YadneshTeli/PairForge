@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, NavLink, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { api } from './api';
@@ -24,6 +24,7 @@ import {
   SignupPage,
 } from './screens';
 import type { AppNotification } from './types';
+import { AdminPage } from './admin';
 import { Icon, type IconName, Mark } from './ui';
 
 const NAV: { to: string; label: string; icon: IconName }[] = [
@@ -51,6 +52,25 @@ function PrimaryNav() {
         </NavLink>
       ))}
     </>
+  );
+}
+
+function ThemeToggle() {
+  const [mode, setMode] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('pairforge-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+    localStorage.setItem('pairforge-theme', mode);
+  }, [mode]);
+
+  return (
+    <button className="ghost" type="button" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}>
+      {mode === 'dark' ? 'Light mode' : 'Dark mode'}
+    </button>
   );
 }
 
@@ -85,6 +105,12 @@ function Shell() {
             <Icon name="user" />
             <span>Profile</span>
           </NavLink>
+          {session?.user.isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <span>Admin</span>
+            </NavLink>
+          )}
+          <ThemeToggle />
           <button className="ghost" type="button" onClick={logout}>
             <Icon name="logout" />
             Log out
@@ -141,6 +167,7 @@ export function App() {
         <Route path="/events/:id" element={<EventPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Route>
     </Routes>

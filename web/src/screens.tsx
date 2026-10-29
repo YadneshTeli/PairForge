@@ -17,7 +17,7 @@ import type {
   Project,
 } from './types';
 import { LOOKING, ROLES, STAGES } from './types';
-import { Empty, Icon, Loading, Note, PageHead, PromptDialog, StatusBlock, explain, pretty } from './ui';
+import { Empty, Icon, Loading, Note, PageHead, PromptDialog, StatusBlock, SwipeCard, explain, pretty } from './ui';
 
 const ROLE_COPY: Record<string, string> = {
   founder: 'You post the idea and choose who comes in.',
@@ -219,7 +219,8 @@ export function FeedPage() {
 
   return (
     <div className="stack">
-      <PageHead title="Discover" lede="Rate the next project from the seat you chose." />
+      <PageHead title="Discover" lede="Drag the card left to pass or right to like. Superlike stays a button so it is never an accident." />
+      <SwipeCard onPass={() => commit('pass', project.id)} onLike={() => openScore('like')}>
       <article className="card stack">
         <div className="row">
           <RoleBadge role={project.owner?.role} />
@@ -231,6 +232,7 @@ export function FeedPage() {
         <div className="row">{project.tags.map((tag) => <span className="badge" key={tag}>{tag}</span>)}</div>
         <Link className="text-link" to={`/projects/${project.id}`}>Open detail</Link>
       </article>
+      </SwipeCard>
       {error && <Note tone="error">{error}</Note>}
       <div className="actions">
         <button className="ghost" type="button" onClick={() => commit('pass', project.id)}>Pass</button>
@@ -755,7 +757,7 @@ export function PeoplePage() {
 
   return (
     <div className="stack">
-      <PageHead title="People" lede="Find someone open to a connection. Filter by a skill when you need a narrower list." />
+      <PageHead title="People" lede="Drag the card left to pass or right to like. Filter by a skill when you need a narrower list." />
       <form className="card row" onSubmit={(event) => {
         event.preventDefault();
         setApplied(skill.trim());
@@ -774,6 +776,7 @@ export function PeoplePage() {
       )}
       {person && (
         <>
+          <SwipeCard onPass={() => swipe('pass')} onLike={() => swipe('like')}>
           <article className="card stack">
             <RoleBadge role={person.role} />
             <h2>{person.displayName}</h2>
@@ -781,6 +784,7 @@ export function PeoplePage() {
             <div className="row">{person.skills.map((item) => <span className="badge" key={item.name}>{item.name}</span>)}</div>
             <Link className="text-link" to={`/people/${person.id}`}>Compatibility</Link>
           </article>
+          </SwipeCard>
           {error && <Note tone="error">{error}</Note>}
           <div className="actions">
             <button className="ghost" type="button" onClick={() => swipe('pass')}>Pass</button>
