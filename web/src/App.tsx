@@ -1,5 +1,7 @@
-import type { ReactNode } from 'react';
-import { NavLink, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link, NavLink, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { api } from './api';
 import { useAuth } from './auth';
 import {
   ChatPage,
@@ -21,6 +23,17 @@ import {
   RolePage,
   SignupPage,
 } from './screens';
+import type { AppNotification } from './types';
+import { AdminPage } from './admin';
+import { Icon, type IconName, Mark } from './ui';
+
+const NAV: { to: string; label: string; icon: IconName }[] = [
+  { to: '/feed', label: 'Feed', icon: 'feed' },
+  { to: '/mine', label: 'Mine', icon: 'folder' },
+  { to: '/matches', label: 'Matches', icon: 'chat' },
+  { to: '/people', label: 'People', icon: 'people' },
+  { to: '/events', label: 'Events', icon: 'calendar' },
+];
 
 function Gate({ children }: { children: ReactNode }) {
   const { session } = useAuth();
@@ -29,28 +42,103 @@ function Gate({ children }: { children: ReactNode }) {
   return children;
 }
 
+function PrimaryNav() {
+  return (
+    <>
+      {NAV.map((item) => (
+        <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+          <Icon name={item.icon} />
+          <span>{item.label}</span>
+        </NavLink>
+      ))}
+    </>
+  );
+}
+
+function ThemeToggle() {
+  const [mode, setMode] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('pairforge-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+    localStorage.setItem('pairforge-theme', mode);
+  }, [mode]);
+
+  return (
+    <button className="ghost" type="button" onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}>
+      {mode === 'dark' ? 'Light mode' : 'Dark mode'}
+    </button>
+  );
+}
+
 function Shell() {
   const { session, logout } = useAuth();
+  const notes = useQuery({
+    queryKey: ['notes'],
+    queryFn: () => api<{ notifications: AppNotification[] }>('/notifications'),
+  });
+  const unread = (notes.data?.notifications ?? []).filter((item) => !item.readAt).length;
+  const name = session?.profile.displayName ?? 'You';
+
   return (
     <div className="shell">
-      <header className="topbar">
-        <strong>PairForge</strong>
-        <div className="row">
-          <span>{session?.profile.displayName}</span>
-          <NavLink to="/notifications">Notifications</NavLink>
-          <NavLink to="/profile">Profile</NavLink>
-          <button className="ghost" type="button" onClick={logout}>Log out</button>
+      <a className="skip" href="#main">Skip to content</a>
+      <aside className="rail">
+        <Link to="/feed" className="brand">
+          <Mark />
+          <span>PairForge</span>
+        </Link>
+        <nav className="rail-nav" aria-label="Primary">
+          <PrimaryNav />
+        </nav>
+        <div className="rail-foot">
+          <p className="who">{name}</p>
+          <NavLink to="/notifications" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <Icon name="bell" />
+            <span>Notifications</span>
+            {unread > 0 && <span className="count">{unread}</span>}
+          </NavLink>
+          <NavLink to="/profile" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            <Icon name="user" />
+            <span>Profile</span>
+          </NavLink>
+          {session?.user.isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <span>Admin</span>
+            </NavLink>
+          )}
+          <ThemeToggle />
+          <button className="ghost" type="button" onClick={logout}>
+            <Icon name="logout" />
+            Log out
+          </button>
         </div>
-      </header>
-      <main className="page">
-        <Outlet />
-      </main>
-      <nav className="nav">
-        <NavLink to="/feed">Feed</NavLink>
-        <NavLink to="/mine">Mine</NavLink>
-        <NavLink to="/matches">Matches</NavLink>
-        <NavLink to="/people">People</NavLink>
-        <NavLink to="/events">Events</NavLink>
+      </aside>
+      <div className="workspace">
+        <header className="mobilebar">
+          <Link to="/feed" className="brand">
+            <Mark />
+            <span>PairForge</span>
+          </Link>
+          <div className="row">
+            <NavLink to="/notifications" className="nav-link" aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}>
+              <Icon name="bell" />
+              {unread > 0 && <span className="count">{unread}</span>}
+            </NavLink>
+            <NavLink to="/profile" className="nav-link" aria-label="Profile">
+              <Icon name="user" />
+            </NavLink>
+          </div>
+        </header>
+        <main id="main" className="page">
+          <Outlet />
+        </main>
+      </div>
+      <nav className="dock" aria-label="Primary">
+        <PrimaryNav />
       </nav>
     </div>
   );
@@ -79,6 +167,7 @@ export function App() {
         <Route path="/events/:id" element={<EventPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/feed" replace />} />
       </Route>
     </Routes>

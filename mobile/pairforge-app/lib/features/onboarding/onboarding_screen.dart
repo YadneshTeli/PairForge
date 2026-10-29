@@ -32,16 +32,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               final selected = _role == option.$1;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  selected: selected,
+                child: Material(
+                  color: selected ? AppColors.rose100 : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: selected ? AppColors.role(option.$1) : const Color(0xFFE6E0D6)),
+                    side: BorderSide(color: selected ? AppColors.primary : AppColors.line),
                   ),
-                  tileColor: Colors.white,
-                  title: Text(option.$2),
-                  trailing: RoleBadge(role: option.$1),
-                  onTap: () => setState(() => _role = option.$1),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: Text(option.$2, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text(roleCopy[option.$1] ?? ''),
+                    trailing: RoleBadge(role: option.$1),
+                    onTap: () => setState(() => _role = option.$1),
+                  ),
                 ),
               );
             }),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../ui/widgets.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -29,37 +30,35 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authStateProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          TextField(controller: _displayName, decoration: const InputDecoration(labelText: 'Display name')),
+    return AuthScaffold(
+      eyebrow: 'NEW HERE',
+      title: 'Create account',
+      children: [
+        TextField(controller: _displayName, decoration: const InputDecoration(labelText: 'Display name')),
+        const SizedBox(height: 12),
+        TextField(controller: _username, decoration: const InputDecoration(labelText: 'Username')),
+        const SizedBox(height: 12),
+        TextField(controller: _email, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress),
+        const SizedBox(height: 12),
+        TextField(controller: _password, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
+        if (auth.error != null) ...[
           const SizedBox(height: 12),
-          TextField(controller: _username, decoration: const InputDecoration(labelText: 'Username')),
-          const SizedBox(height: 12),
-          TextField(controller: _email, decoration: const InputDecoration(labelText: 'Email'), keyboardType: TextInputType.emailAddress),
-          const SizedBox(height: 12),
-          TextField(controller: _password, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
-          if (auth.error != null) ...[
-            const SizedBox(height: 12),
-            Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ],
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: auth.isLoading
-                ? null
-                : () => ref.read(authStateProvider.notifier).signup(
-                      email: _email.text.trim(),
-                      username: _username.text.trim(),
-                      password: _password.text,
-                      displayName: _displayName.text.trim().isEmpty ? _username.text.trim() : _displayName.text.trim(),
-                    ),
-            child: Text(auth.isLoading ? 'Creating…' : 'Create account'),
-          ),
-          TextButton(onPressed: () => context.go('/login'), child: const Text('I already have an account')),
+          Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w700)),
         ],
-      ),
+        const SizedBox(height: 20),
+        FilledButton(
+          onPressed: auth.isLoading
+              ? null
+              : () => ref.read(authStateProvider.notifier).signup(
+                    email: _email.text.trim(),
+                    username: _username.text.trim(),
+                    password: _password.text,
+                    displayName: _displayName.text.trim().isEmpty ? _username.text.trim() : _displayName.text.trim(),
+                  ),
+          child: Text(auth.isLoading ? 'Creating…' : 'Create account'),
+        ),
+        TextButton(onPressed: () => context.go('/login'), child: const Text('I already have an account')),
+      ],
     );
   }
 }

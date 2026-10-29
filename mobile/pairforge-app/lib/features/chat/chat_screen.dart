@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../../core/config/app_config.dart';
+import '../../core/constants/colors.dart';
 import '../../data/api.dart';
 import '../../models/models.dart';
 import '../../providers/auth_provider.dart';
@@ -90,7 +91,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: const Text('Chat'),
         actions: [
-          TextButton(onPressed: () => context.push('/matches/${widget.matchId}/pair'), child: const Text('Pair')),
+          TextButton(onPressed: () => context.push('/matches/${widget.matchId}/pair'), child: const Text('Pair session')),
         ],
       ),
       body: _loading
@@ -115,10 +116,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                     constraints: const BoxConstraints(maxWidth: 280),
                                     decoration: BoxDecoration(
-                                      color: mine ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surfaceContainerHighest,
+                                      color: mine ? AppColors.primary : Colors.white,
                                       borderRadius: BorderRadius.circular(16),
+                                      border: mine ? null : Border.all(color: AppColors.line),
                                     ),
-                                    child: Text(message.content),
+                                    child: Text(message.content, style: TextStyle(color: mine ? Colors.white : AppColors.ink)),
                                   ),
                                 );
                               },

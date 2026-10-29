@@ -28,7 +28,7 @@ class ProjectDetailScreen extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Row(children: [RoleBadge(role: item.owner?.role), const SizedBox(width: 8), Text(item.stage)]),
+              Row(children: [RoleBadge(role: item.owner?.role), const SizedBox(width: 8), StageChip(item.stage)]),
               const SizedBox(height: 12),
               Text(item.title, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),

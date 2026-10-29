@@ -6,6 +6,7 @@ import '../../data/api.dart';
 import '../../models/models.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/dio_provider.dart';
+import '../../core/constants/colors.dart';
 import '../../ui/widgets.dart';
 
 const stages = ['idea', 'prototype', 'mvp', 'launched'];
@@ -119,7 +120,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: _stage,
                   decoration: const InputDecoration(labelText: 'Stage'),
-                  items: stages.map((stage) => DropdownMenuItem(value: stage, child: Text(stage))).toList(),
+                  items: stages.map((stage) => DropdownMenuItem(value: stage, child: Text(pretty(stage)))).toList(),
                   onChanged: (value) => setState(() => _stage = value ?? _stage),
                 ),
                 const SizedBox(height: 12),
@@ -130,7 +131,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
                   spacing: 8,
                   children: lookingOptions.map((option) {
                     return FilterChip(
-                      label: Text(option),
+                      label: Text(pretty(option)),
                       selected: _lookingFor.contains(option),
                       onSelected: (selected) => setState(() {
                         if (selected) {
