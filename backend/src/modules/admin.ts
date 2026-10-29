@@ -167,6 +167,36 @@ const premiumSchema = z.object({
   isPremium: z.boolean(),
 });
 
+adminRouter.get(
+  '/reports',
+  asyncHandler(async (_req, res) => {
+    const rows = await query<{
+      id: string;
+      target_type: string;
+      target_id: string;
+      reason: string;
+      created_at: Date;
+      reporter_name: string;
+    }>(
+      `SELECT r.id, r.target_type, r.target_id, r.reason, r.created_at, p.display_name AS reporter_name
+       FROM reports r
+       JOIN profiles p ON p.id = r.reporter_id
+       ORDER BY r.created_at DESC
+       LIMIT 100`,
+    );
+    res.json({
+      reports: rows.map((row) => ({
+        id: row.id,
+        targetType: row.target_type,
+        targetId: row.target_id,
+        reason: row.reason,
+        createdAt: row.created_at,
+        reporterName: row.reporter_name,
+      })),
+    });
+  }),
+);
+
 adminRouter.patch(
   '/profiles/:id/premium',
   validateBody(premiumSchema),
