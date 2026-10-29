@@ -85,3 +85,5 @@ htmlcov/
 
 # ─── Kotlin / Gradle errors ───────────────────────────────────────────────────
 mobile/pairforge-app/android/.kotlin/
+
+.cursor/
